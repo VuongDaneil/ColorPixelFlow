@@ -1,0 +1,116 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19905d9568c7d8344a41b08e2cd38708, type: 3}
+  m_Name: ColorPaletteData
+  m_EditorClassIdentifier: 
+  colorPallete:
+    _serializedList:
+    - Key: Brown1
+      Value: {r: 0.38431373, g: 0.20392157, b: 0.21176471, a: 1}
+    - Key: Brown2
+      Value: {r: 0.54509807, g: 0.2627451, b: 0.20784314, a: 1}
+    - Key: Brown3
+      Value: {r: 0.70980394, g: 0.42352942, b: 0.30588236, a: 1}
+    - Key: Brown4
+      Value: {r: 0.84313726, g: 0.5764706, b: 0.41568628, a: 1}
+    - Key: Brown5
+      Value: {r: 1, g: 0.7557556, b: 0.6084906, a: 1}
+    - Key: Magenta1
+      Value: {r: 0.41509432, g: 0.08810966, b: 0.36533576, a: 1}
+    - Key: Magenta2
+      Value: {r: 0.5647059, g: 0.16470589, b: 0.4, a: 1}
+    - Key: Magenta3
+      Value: {r: 0.7294118, g: 0.15686275, b: 0.36078432, a: 1}
+    - Key: Magenta4
+      Value: {r: 0.8962264, g: 0.34242615, b: 0.5396701, a: 1}
+    - Key: Magenta5
+      Value: {r: 0.9339623, g: 0.54187435, b: 0.68152213, a: 1}
+    - Key: Red1
+      Value: {r: 0.5660378, g: 0.056069776, b: 0.17416757, a: 1}
+    - Key: Red2
+      Value: {r: 0.8584906, g: 0.20652366, b: 0.24571283, a: 1}
+    - Key: Red3
+      Value: {r: 1, g: 0.4509804, b: 0.47843137, a: 1}
+    - Key: Red4
+      Value: {r: 1, g: 0.6509804, b: 0.6156863, a: 1}
+    - Key: Red5
+      Value: {r: 1, g: 0.8414998, b: 0.8254717, a: 1}
+    - Key: Orange1
+      Value: {r: 0.6037736, g: 0.2463231, b: 0.11107157, a: 1}
+    - Key: Orange2
+      Value: {r: 0.81960785, g: 0.4117647, b: 0.039215688, a: 1}
+    - Key: Orange3
+      Value: {r: 1, g: 0.49019608, b: 0, a: 1}
+    - Key: Orange4
+      Value: {r: 1, g: 0.63529414, b: 0, a: 1}
+    - Key: Orange5
+      Value: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
+    - Key: Yellow1
+      Value: {r: 0.49019608, g: 0.3882353, b: 0, a: 1}
+    - Key: Yellow2
+      Value: {r: 0.6862745, g: 0.54509807, b: 0, a: 1}
+    - Key: Yellow3
+      Value: {r: 0.9490196, g: 0.76862746, b: 0, a: 1}
+    - Key: Yellow4
+      Value: {r: 1, g: 0.8624641, b: 0.3160377, a: 1}
+    - Key: Yellow5
+      Value: {r: 1, g: 0.93333334, b: 0.7019608, a: 1}
+    - Key: Green1
+      Value: {r: 0.1764706, g: 0.4392157, b: 0.2509804, a: 1}
+    - Key: Green2
+      Value: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
+    - Key: Green3
+      Value: {r: 0.5372549, g: 0.8666667, b: 0.2784314, a: 1}
+    - Key: Green4
+      Value: {r: 0.8117647, g: 0.99215686, b: 0.33333334, a: 1}
+    - Key: Green5
+      Value: {r: 0.95686275, g: 1, b: 0.60784316, a: 1}
+    - Key: Blue1
+      Value: {r: 0.16909933, g: 0.16909933, b: 0.3773585, a: 1}
+    - Key: Blue2
+      Value: {r: 0.16803133, g: 0.31618366, b: 0.6037736, a: 1}
+    - Key: Blue3
+      Value: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
+    - Key: Blue4
+      Value: {r: 0.29411766, g: 0.6117647, b: 1, a: 1}
+    - Key: Blue5
+      Value: {r: 0.654902, g: 0.80784315, b: 1, a: 1}
+    - Key: Black
+      Value: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 1}
+    - Key: Gray2
+      Value: {r: 0.36445352, g: 0.3692676, b: 0.3962264, a: 1}
+    - Key: Gray3
+      Value: {r: 0.54089534, g: 0.57142717, b: 0.6132076, a: 1}
+    - Key: Gray4
+      Value: {r: 0.7350036, g: 0.75774765, b: 0.7830189, a: 1}
+    - Key: White
+      Value: {r: 1, g: 0.9328, b: 0.88, a: 1}
+    - Key: Cyan1
+      Value: {r: 0, g: 0.3137255, b: 0.29411766, a: 1}
+    - Key: Cyan2
+      Value: {r: 0, g: 0.47843137, b: 0.44705883, a: 1}
+    - Key: Cyan3
+      Value: {r: 0, g: 0.7019608, b: 0.654902, a: 1}
+    - Key: Cyan4
+      Value: {r: 0.3019608, g: 0.83137256, b: 0.79607844, a: 1}
+    - Key: Cyan5
+      Value: {r: 0.72156864, g: 0.9490196, b: 0.93333334, a: 1}
+    - Key: Purple1
+      Value: {r: 0.19215687, g: 0.15294118, b: 0.42352942, a: 1}
+    - Key: Purple2
+      Value: {r: 0.3137255, g: 0.24705882, b: 0.69411767, a: 1}
+    - Key: Purple3
+      Value: {r: 0.38431373, g: 0.3529412, b: 0.8745098, a: 1}
+    - Key: Purple4
+      Value: {r: 0.5294118, g: 0.5058824, b: 0.9529412, a: 1}
+    - Key: Purple5
+      Value: {r: 0.7372549, g: 0.72156864, b: 1, a: 1}
