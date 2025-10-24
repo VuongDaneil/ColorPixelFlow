@@ -11,6 +11,9 @@ public class WallObject : MonoBehaviour
     public List<PaintingPixel> PaintingPixelsCovered;
     public int CurrentHeart = 0;
 
+    [Header("VISUAL")]
+    public Renderer WallRenderer;
+
     private void Awake()
     {
         WallTransform = transform;
@@ -22,7 +25,7 @@ public class WallObject : MonoBehaviour
     /// <param name="head">The head transform</param>
     /// <param name="bodyParts">List of body parts transforms (including tail), ordered from head to tail</param>
     /// <param name="isHorizontal">True if the pipe is horizontal (in same row), false if vertical (in same column)</param>
-    public void Initialize(List<PaintingPixel> pipePixels, int heart)
+    public void Initialize(List<PaintingPixel> pipePixels, int heart, Color color)
     {
         WallTransform = transform;
         PaintingPixelsCovered = pipePixels != null ? pipePixels : new List<PaintingPixel>();
@@ -34,6 +37,7 @@ public class WallObject : MonoBehaviour
                 CurrentHeart += pixel.Hearts;
             }
         }
+        ChangeColor(color);
     }
 
     public void OnAPixelDestroyed()
@@ -61,5 +65,13 @@ public class WallObject : MonoBehaviour
     {
         if (Application.isPlaying) GameObject.Destroy(WallTransform.gameObject);
         else GameObject.DestroyImmediate(WallTransform.gameObject);
+    }
+
+    public void ChangeColor(Color _color)
+    {
+        MaterialPropertyBlock materialPropertyBlock = new MaterialPropertyBlock();
+        WallRenderer.GetPropertyBlock(materialPropertyBlock);
+        materialPropertyBlock.SetColor("_Color", _color);
+        WallRenderer.SetPropertyBlock(materialPropertyBlock);
     }
 }

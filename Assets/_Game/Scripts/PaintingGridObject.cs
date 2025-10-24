@@ -25,7 +25,8 @@ public class PaintingGridObject : MonoBehaviour
     public Vector2 gridSize;
     public Transform Center;
     public List<PaintingPixel> paintingPixels;
-    
+    public ColorPalleteData colorPallete;
+
     // Lists for faster lookup by row and column (serializable)
     public List<IntPixelListPair> pixelsByRow;
     public List<IntPixelListPair> pixelsByColumn;
@@ -752,12 +753,12 @@ public class PaintingGridObject : MonoBehaviour
         ClearAllWall();
 
         // Create pipe objects based on the configurations in the painting config
-        foreach (var allSetup in paintingConfig.WallSetups)
+        foreach (var wallSetup in paintingConfig.WallSetups)
         {
-            if (allSetup != null && allSetup.PixelCovered != null && allSetup.PixelCovered.Count > 0)
+            if (wallSetup != null)
             {
                 // Create a new pipe object based on the setup
-                CreateWallObject(allSetup);
+                CreateWallObject(wallSetup);
             }
         }
     }
@@ -785,6 +786,8 @@ public class PaintingGridObject : MonoBehaviour
         GameObject wallGO = Instantiate(WallObjectPrefab, wallPosition, Quaternion.identity, transform);
         wallGO.name = $"WALL_OBJECT_{wallSetup.ColorCode}";
 
+        Color wallColor = colorPallete.GetColorByCode(wallSetup.ColorCode);
+
         // Get the PipeObject component from the head
         WallObject wallObject = wallGO.GetComponent<WallObject>();
         if (wallObject == null)
@@ -811,7 +814,7 @@ public class PaintingGridObject : MonoBehaviour
             }
         }
 
-        wallObject.Initialize(wallPixels, wallSetup.Hearts);
+        wallObject.Initialize(wallPixels, wallSetup.Hearts, wallColor);
         wallObjects.Add(wallObject);
         return wallObject;
     }
