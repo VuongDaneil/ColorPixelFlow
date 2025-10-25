@@ -1,6 +1,6 @@
-using UnityEngine;
+using static PaintingSharedAttributes;
 using System.Collections.Generic;
-using System.Linq;
+using UnityEngine;
 
 public class PaintingConfigSetup : MonoBehaviour
 {
@@ -98,6 +98,7 @@ public class PaintingConfigSetup : MonoBehaviour
                 pixelConfig.column = gridCol;
                 pixelConfig.color = closestColor;
                 pixelConfig.colorCode = colorCode;
+                pixelConfig.Hidden = closestColor.a == 0;
 
                 pixels.Add(pixelConfig);
             }
@@ -151,6 +152,8 @@ public class PaintingConfigSetup : MonoBehaviour
 
     private (Color color, string colorCode) FindClosestColorInPalette(Color targetColor, ColorPalleteData palette)
     {
+        if (!useColorFilter) return (targetColor, DefaultColorKey);
+        if (targetColor.a == 0) return (targetColor, TransparentColorKey);
         if (palette.colorPallete.Count == 0)
         {
             Debug.LogWarning("Color palette is empty!");
@@ -186,7 +189,8 @@ public class PaintingConfigSetup : MonoBehaviour
             return (targetColor, "");
         }
 
-        return (closestColor, closestColorCode);
+        if (useColorFilter) return (closestColor, closestColorCode);
+        else return (targetColor, closestColorCode);
     }
 
     // Calculate color distance using CIE76 formula (Euclidean distance in LAB space)

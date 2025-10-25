@@ -64,11 +64,14 @@ public class PaintingPixel
         this.colorCode = colorCode;
         this.Hidden = hidden;
 
+        PixelComponent?.SetUp(this);
+
         if (Hidden)
         {
             destroyed = true;
             pixelObject.SetActive(false);
         }
+        else PixelComponent?.ApplyVisual();
     }
 
     public void SetPosition(Vector3 newPos)

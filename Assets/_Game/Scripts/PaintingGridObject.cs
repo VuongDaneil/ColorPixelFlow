@@ -429,7 +429,6 @@ public class PaintingGridObject : MonoBehaviour
         if (pixel != null)
         {
             pixel.SetUp(newColor, colorCode, hidden);
-            pixel.PixelComponent.ApplyVisual();
         }
     }
 
