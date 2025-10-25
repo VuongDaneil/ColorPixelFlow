@@ -45,6 +45,12 @@ public class PaintingGridObject : MonoBehaviour
     [Header("Wall Object Pixels")]
     public List<PaintingPixel> wallObjectsPixels;
 
+    [Header("Keys")]
+    public List<KeyObject> keyObjects;
+
+    [Header("Key Object Pixels")]
+    public List<PaintingPixel> keyObjectsPixels;
+
     [Header("Grid Settings")]
     public float pixelArrangeSpace = 1.0f;
     public float pixelScaleFactor = 1.0f;
@@ -62,6 +68,7 @@ public class PaintingGridObject : MonoBehaviour
     public GameObject DefaultPipeBodyPrefab;
     public GameObject DefaultPipeTailPrefab;
     public GameObject WallObjectPrefab;
+    public GameObject KeyObjectPrefab;
     #endregion
 
     #region UNITY CORE
@@ -93,76 +100,38 @@ public class PaintingGridObject : MonoBehaviour
     #region MAIN
 
     #region _initialize
-    // Initialize the row and column mapping lists from the existing paintingPixels
-    private void InitializePixelMappings()
+    // Method to apply painting configuration to the grid
+    public void ApplyPaintingConfig()
     {
-        // Initialize the lists if they're null
-        if (pixelsByRow == null)
+        if (paintingConfig == null)
         {
-            pixelsByRow = new List<IntPixelListPair>();
+            Debug.LogWarning("No PaintingConfig assigned to apply.");
+            return;
         }
-        else
+
+        // Iterate through all pixel configs in the painting config
+        foreach (PaintingPixelConfig pixelConfig in paintingConfig.Pixels)
         {
-            pixelsByRow.Clear();
+            // Apply color variation if enabled
+            Color variedColor = ApplyColorVariation(pixelConfig.color, colorVariationAmount);
+
+            // Update the pixel color and color code in the grid
+            SetupPixelObject(pixelConfig.column, pixelConfig.row, variedColor, pixelConfig.colorCode, pixelConfig.Hidden);
         }
-        
-        if (pixelsByColumn == null)
-        {
-            pixelsByColumn = new List<IntPixelListPair>();
-        }
-        else
-        {
-            pixelsByColumn.Clear();
-        }
-        
-        // Populate the mappings with current painting pixels
-        if (paintingPixels != null)
-        {
-            foreach (PaintingPixel pixel in paintingPixels)
-            {
-                if (pixel != null)
-                {
-                    // Add to row mapping
-                    AddPixelToRowMapping(pixel.row, pixel);
-                    
-                    // Add to column mapping
-                    AddPixelToColumnMapping(pixel.column, pixel);
-                }
-            }
-        }
-        
-        // Populate the mappings with pipe object pixels
-        if (pipeObjectsPixels != null)
-        {
-            foreach (PaintingPixel pixel in pipeObjectsPixels)
-            {
-                if (pixel != null)
-                {
-                    // Add to row mapping
-                    AddPixelToRowMapping(pixel.row, pixel);
-                    
-                    // Add to column mapping
-                    AddPixelToColumnMapping(pixel.column, pixel);
-                }
-            }
-        }
-    }
-    
-    public void InitializeGrid(Vector2 size, float arrangeSpace, GameObject prefab, float scaleFactor = 1.0f)
-    {
-        this.gridSize = size;
-        this.pixelArrangeSpace = arrangeSpace;
-        this.pixelPrefab = prefab;
-        this.pixelScaleFactor = scaleFactor;
-        
-        if (paintingPixels == null) paintingPixels = new List<PaintingPixel>();
-        else paintingPixels.Clear();
-        
-        if (pipeObjects == null) pipeObjects = new List<PipeObject>();
-        else pipeObjects.Clear();
+
+        // Apply wall configurations as well
+        ApplyWallConfigurations();
+
+        // Apply pipe configurations as well
+        ApplyPipeConfigurations();
+
+        // Apply key configurations as well
+        ApplyKeyConfigurations();
+
     }
     #endregion
 
+    #region _actions
     public void ShootPixel(PaintingPixel pixel)
     {
         pixel.DestroyPixel();
@@ -181,7 +150,7 @@ public class PaintingGridObject : MonoBehaviour
             }
         }
         paintingPixels.Clear();
-        
+
         // Destroy all pipe objects and clear the list
         for (int i = 0; i < pipeObjects.Count; i++)
         {
@@ -191,7 +160,7 @@ public class PaintingGridObject : MonoBehaviour
             }
         }
         pipeObjects.Clear();
-        
+
         // Clear pipe object pixels and destroy their GameObjects as well
         for (int i = 0; i < pipeObjectsPixels.Count; i++)
         {
@@ -202,12 +171,12 @@ public class PaintingGridObject : MonoBehaviour
             }
         }
         pipeObjectsPixels.Clear();
-        
+
         // Clear the row and column mappings as well
         pixelsByRow.Clear();
         pixelsByColumn.Clear();
     }
-    
+
     public List<PaintingPixel> SelectOutlinePixels()
     {
         List<PaintingPixel> outlinePixels = new List<PaintingPixel>();
@@ -224,7 +193,7 @@ public class PaintingGridObject : MonoBehaviour
                     // Find min and max column for this row among non-destroyed pixels
                     int minCol = int.MaxValue;
                     int maxCol = int.MinValue;
-                    
+
                     foreach (var pixel in rowPixels)
                     {
                         if (pixel != null && !pixel.destroyed && !pixel.Hidden)
@@ -233,7 +202,7 @@ public class PaintingGridObject : MonoBehaviour
                             maxCol = Mathf.Max(maxCol, pixel.column);
                         }
                     }
-                    
+
                     // Add the leftmost and rightmost pixels of this row to outline
                     if (minCol != int.MaxValue) // Check if we found any non-destroyed pixels
                     {
@@ -251,7 +220,7 @@ public class PaintingGridObject : MonoBehaviour
                 }
             }
         }
-        
+
         // Next, check the pixels in each column to find min/max rows
         if (pixelsByColumn != null)
         {
@@ -263,7 +232,7 @@ public class PaintingGridObject : MonoBehaviour
                     // Find min and max row for this column among non-destroyed pixels
                     int minRow = int.MaxValue;
                     int maxRow = int.MinValue;
-                    
+
                     foreach (var pixel in colPixels)
                     {
                         if (pixel != null && !pixel.destroyed && !pixel.Hidden)
@@ -272,7 +241,7 @@ public class PaintingGridObject : MonoBehaviour
                             maxRow = Mathf.Max(maxRow, pixel.row);
                         }
                     }
-                    
+
                     // Add the topmost and bottommost pixels of this column to outline
                     if (minRow != int.MaxValue) // Check if we found any non-destroyed pixels
                     {
@@ -290,14 +259,14 @@ public class PaintingGridObject : MonoBehaviour
                 }
             }
         }
-        
+
         return outlinePixels;
     }
-    
+
     public List<PaintingPixel> SelectOutlinePixelsWithColor(string colorCode)
     {
         List<PaintingPixel> outlinePixels = SelectOutlinePixels();
-        
+
         if (paintingPixels == null || paintingPixels.Count == 0)
         {
             return outlinePixels;
@@ -305,7 +274,9 @@ public class PaintingGridObject : MonoBehaviour
         var rs = outlinePixels.FindAll(x => x.colorCode == colorCode).ToList();
         return rs;
     }
-    
+    #endregion
+
+    #region _grid
     // Generate the grid of pixels
     public void GenerateGrid(Transform centerPoint, float yoffset = 0)
     {
@@ -330,20 +301,22 @@ public class PaintingGridObject : MonoBehaviour
                 // From this example, we can deduce:
                 // For 20 rows: indices are from -10 to +9 (centered at 0)
                 // For 40 columns: indices are from -20 to +19 (centered at 0)
-                
+
                 // Calculate actual grid coordinates based on design document specification
                 // For any grid size, indices should be centered around [0, 0]
                 int halfCols = (int)(gridSize.x / 2); // Swapped halfRows and halfCols
                 int halfRows = (int)(gridSize.y / 2); // Swapped halfRows and halfCols
-                
+
                 // Handle both even and odd dimensions
                 int gridCol = halfCols - col;  // Start from right (positive) to left (negative) - Swapped gridRow and gridCol
-                if ((int)gridSize.x % 2 == 0) {
+                if ((int)gridSize.x % 2 == 0)
+                {
                     gridCol -= 1; // Adjust for even number of columns
                 }
-                
+
                 int gridRow = row - halfRows;  // Start from bottom (negative) to top (positive) - Swapped gridRow and gridCol
-                if ((int)gridSize.y % 2 == 0) {
+                if ((int)gridSize.y % 2 == 0)
+                {
                     // No adjustment needed for even number of rows in this implementation
                 }
 
@@ -381,7 +354,74 @@ public class PaintingGridObject : MonoBehaviour
             }
         }
     }
-    
+    // Initialize the row and column mapping lists from the existing paintingPixels
+    private void InitializePixelMappings()
+    {
+        // Initialize the lists if they're null
+        if (pixelsByRow == null)
+        {
+            pixelsByRow = new List<IntPixelListPair>();
+        }
+        else
+        {
+            pixelsByRow.Clear();
+        }
+
+        if (pixelsByColumn == null)
+        {
+            pixelsByColumn = new List<IntPixelListPair>();
+        }
+        else
+        {
+            pixelsByColumn.Clear();
+        }
+
+        // Populate the mappings with current painting pixels
+        if (paintingPixels != null)
+        {
+            foreach (PaintingPixel pixel in paintingPixels)
+            {
+                if (pixel != null)
+                {
+                    // Add to row mapping
+                    AddPixelToRowMapping(pixel.row, pixel);
+
+                    // Add to column mapping
+                    AddPixelToColumnMapping(pixel.column, pixel);
+                }
+            }
+        }
+
+        // Populate the mappings with pipe object pixels
+        if (pipeObjectsPixels != null)
+        {
+            foreach (PaintingPixel pixel in pipeObjectsPixels)
+            {
+                if (pixel != null)
+                {
+                    // Add to row mapping
+                    AddPixelToRowMapping(pixel.row, pixel);
+
+                    // Add to column mapping
+                    AddPixelToColumnMapping(pixel.column, pixel);
+                }
+            }
+        }
+    }
+    public void InitializeGrid(Vector2 size, float arrangeSpace, GameObject prefab, float scaleFactor = 1.0f)
+    {
+        this.gridSize = size;
+        this.pixelArrangeSpace = arrangeSpace;
+        this.pixelPrefab = prefab;
+        this.pixelScaleFactor = scaleFactor;
+
+        if (paintingPixels == null) paintingPixels = new List<PaintingPixel>();
+        else paintingPixels.Clear();
+
+        if (pipeObjects == null) pipeObjects = new List<PipeObject>();
+        else pipeObjects.Clear();
+    }
+
     // Method to update a pixel's color and color code at a specific position using MaterialPropertyBlock
     public void SetupPixelObject(int column, int row, Color newColor, string colorCode, bool hidden)
     {
@@ -393,51 +433,6 @@ public class PaintingGridObject : MonoBehaviour
         }
     }
 
-    private PaintingPixelComponent FindPixelComponent(int column, int row)
-    {
-        foreach (PaintingPixel pixel in paintingPixels)
-        {
-            // This assumes that the pixel GameObjects have some component that identifies them by column/row
-            // This might need adjustment based on how the PaintingPixelComponent is implemented
-            var pixelComponent = pixel.PixelComponent;
-            if (pixelComponent != null && pixelComponent.PixelData != null)
-            {
-                if (pixelComponent.PixelData.column == column && pixelComponent.PixelData.row == row)
-                {
-                    return pixelComponent;
-                }
-            }
-        }
-        return null;
-    }
-
-    // Method to apply painting configuration to the grid
-    public void ApplyPaintingConfig()
-    {
-        if (paintingConfig == null)
-        {
-            Debug.LogWarning("No PaintingConfig assigned to apply.");
-            return;
-        }
-        
-        // Iterate through all pixel configs in the painting config
-        foreach (PaintingPixelConfig pixelConfig in paintingConfig.Pixels)
-        {
-            // Apply color variation if enabled
-            Color variedColor = ApplyColorVariation(pixelConfig.color, colorVariationAmount);
-            
-            // Update the pixel color and color code in the grid
-            SetupPixelObject(pixelConfig.column, pixelConfig.row, variedColor, pixelConfig.colorCode, pixelConfig.Hidden);
-        }
-        
-        // Apply wall configurations as well
-        ApplyWallConfigurations();
-
-        // Apply pipe configurations as well
-        ApplyPipeConfigurations();
-
-    }
-    
     // Helper method to add a pixel to row mapping
     private void AddPixelToRowMapping(int row, PaintingPixel pixel)
     {
@@ -446,10 +441,10 @@ public class PaintingGridObject : MonoBehaviour
         {
             pixelsByRow = new List<IntPixelListPair>();
         }
-        
+
         // Find if there's already a list for this row
         IntPixelListPair rowPair = pixelsByRow.Find(pair => pair.key == row);
-        
+
         if (rowPair == null)
         {
             // Create a new list for this row
@@ -466,7 +461,7 @@ public class PaintingGridObject : MonoBehaviour
             }
         }
     }
-    
+
     // Helper method to add a pixel to column mapping
     private void AddPixelToColumnMapping(int column, PaintingPixel pixel)
     {
@@ -475,10 +470,10 @@ public class PaintingGridObject : MonoBehaviour
         {
             pixelsByColumn = new List<IntPixelListPair>();
         }
-        
+
         // Find if there's already a list for this column
         IntPixelListPair columnPair = pixelsByColumn.Find(pair => pair.key == column);
-        
+
         if (columnPair == null)
         {
             // Create a new list for this column
@@ -495,18 +490,19 @@ public class PaintingGridObject : MonoBehaviour
             }
         }
     }
-    
+
     // Update the row and column mappings when a pixel is added
     private void AddPixelToMappings(PaintingPixel pixel)
     {
         if (pixel == null) return;
-        
+
         // Add to row mapping
         AddPixelToRowMapping(pixel.row, pixel);
-        
+
         // Add to column mapping
         AddPixelToColumnMapping(pixel.column, pixel);
     }
+    #endregion
 
     #region _events
     private void RegisterEvent()
@@ -555,7 +551,7 @@ public class PaintingGridObject : MonoBehaviour
         }
 
         // Clear existing pipe objects
-        ClearAllPipe();
+        ClearAllPipes();
 
         // Create pipe objects based on the configurations in the painting config
         foreach (var pipeSetup in paintingConfig.PipeSetups)
@@ -563,11 +559,11 @@ public class PaintingGridObject : MonoBehaviour
             if (pipeSetup != null && pipeSetup.PixelCovered != null && pipeSetup.PixelCovered.Count > 0)
             {
                 // Create a new pipe object based on the setup
-                CreatePipeFromSetup(pipeSetup);
+                CreatePipeObject(pipeSetup);
             }
         }
     }
-    public void ClearAllPipe()
+    public void ClearAllPipes()
     {
         if (pipeObjects == null) pipeObjects = new List<PipeObject>();
         else
@@ -583,27 +579,44 @@ public class PaintingGridObject : MonoBehaviour
     }
 
     // Helper method to create a pipe object from a pipe setup configuration
-    private void CreatePipeFromSetup(PipeObjectSetup pipeSetup)
+    public PipeObject CreatePipeObject(PipeObjectSetup pipeSetup)
     {
         if (pipeSetup.PixelCovered == null || pipeSetup.PixelCovered.Count < 2)
         {
             Debug.LogWarning("Pipe setup has less than 2 pixels. Cannot create pipe.");
-            return;
+            return null;
+        }
+
+        List<PaintingPixel> respectedPixels = new List<PaintingPixel>();
+        Color pipeColor = colorPallete.GetColorByCode(pipeSetup.ColorCode);
+
+        for (int i = 0; i < pipeSetup.PixelCovered.Count; i++)
+        {
+            PaintingPixelConfig pixelConfig = pipeSetup.PixelCovered[i];
+            PaintingPixel respectedPixel = GetPixelAtGridPosition(pixelConfig.column, pixelConfig.row);
+            if (respectedPixel == null)
+            {
+                PaintingPixel additionPixel = CreateNewPaintingPixel(pixelConfig, true);
+                additionPixel.color = pipeColor;
+                additionPixel.colorCode = pipeSetup.ColorCode;
+                if (additionPixel != null) respectedPixels.Add(additionPixel);
+            }
+            else
+            {
+                respectedPixels.Add(respectedPixel);
+            }
         }
 
         // Determine if the pipe is horizontal or vertical based on the first and last pixels
-        PaintingPixel firstPixel = pipeSetup.PixelCovered[0];
-        PaintingPixel lastPixel = pipeSetup.PixelCovered[^1];
-        bool isHorizontal = firstPixel.row == lastPixel.row;
+        // Get the head and tail positions from the first and last pixels
+        PaintingPixel headPixel = respectedPixels[0];
+        PaintingPixel tailPixel = respectedPixels[^1];
+        bool isHorizontal = headPixel.row == tailPixel.row;
 
         // Create the pipe game object with head transform as parent
         GameObject pipeGO = new GameObject($"PIPE_OBJECT_{pipeSetup.ColorCode}");
         pipeGO.transform.SetParent(this.transform);
         pipeGO.transform.localPosition = Vector3.zero;
-
-        // Get the head and tail positions from the first and last pixels
-        PaintingPixel headPixel = pipeSetup.PixelCovered[0];
-        PaintingPixel tailPixel = pipeSetup.PixelCovered[^1];
 
         // Create the head at the first pixel position
         GameObject headGO = Instantiate(DefaultPipeHeadPrefab, headPixel.worldPos, Quaternion.identity, pipeGO.transform);
@@ -627,7 +640,7 @@ public class PaintingGridObject : MonoBehaviour
         if (headVisualHandle == null)
             headVisualHandle = headGO.GetComponentInChildren<PipePartVisualHandle>();
         if (headVisualHandle != null)
-            headVisualHandle.SetColor(headPixel.color);
+            headVisualHandle.SetColor(pipeColor);
 
         // Initialize the list for body parts
         List<Transform> bodyParts = new List<Transform>
@@ -638,11 +651,11 @@ public class PaintingGridObject : MonoBehaviour
         // Create body parts for the middle pixels
         for (int i = 1; i < pipeSetup.PixelCovered.Count - 1; i++)
         {
-            GameObject bodyGO = Instantiate(DefaultPipeBodyPrefab, pipeSetup.PixelCovered[i].worldPos, Quaternion.identity, pipeGO.transform);
+            GameObject bodyGO = Instantiate(DefaultPipeBodyPrefab, respectedPixels[i].worldPos, Quaternion.identity, pipeGO.transform);
             bodyGO.name = "PipeBody";
             // Apply direct scale to the body part
             bodyGO.transform.localScale = pipeSetup.Scale;
-            bodyGO.transform.localPosition = pipeSetup.PixelCovered[i].worldPos;
+            bodyGO.transform.localPosition = respectedPixels[i].worldPos;
             bodyParts.Add(bodyGO.transform);
 
             // Change the color of the body part using PipePartVisualHandle
@@ -650,7 +663,7 @@ public class PaintingGridObject : MonoBehaviour
             if (visualHandle == null)
                 visualHandle = bodyGO.GetComponentInChildren<PipePartVisualHandle>();
             if (visualHandle != null)
-                visualHandle.SetColor(pipeSetup.PixelCovered[i].color);
+                visualHandle.SetColor(pipeColor);
         }
 
         // Create tail at the last pixel position
@@ -666,13 +679,13 @@ public class PaintingGridObject : MonoBehaviour
         if (tailVisualHandle == null)
             tailVisualHandle = tailGO.GetComponentInChildren<PipePartVisualHandle>();
         if (tailVisualHandle != null)
-            tailVisualHandle.SetColor(tailPixel.color);
+            tailVisualHandle.SetColor(pipeColor);
 
         // Add the pipe setup pixels to the pipeObjectsPixels list if they're not already there
         if (pipeObjectsPixels == null) pipeObjectsPixels = new List<PaintingPixel>();
         List<PaintingPixel> newpipePixels = new List<PaintingPixel>();
 
-        foreach (PaintingPixel pixel in pipeSetup.PixelCovered)
+        foreach (PaintingPixel pixel in respectedPixels)
         {
             PaintingPixel tmp = CreatePipePixel(pixel);
             if (tmp != null)
@@ -687,6 +700,7 @@ public class PaintingGridObject : MonoBehaviour
         pipeObject.Initialize(headTransform, bodyParts, newpipePixels, isHorizontal);
         pipeObject.ApplyOrientationRotation();
         pipeObjects.Add(pipeObject);
+        return pipeObject;
     }
 
     /// <summary>
@@ -743,14 +757,14 @@ public class PaintingGridObject : MonoBehaviour
     #region _walls
     public void ApplyWallConfigurations()
     {
-        if (paintingConfig == null || paintingConfig.PipeSetups == null)
+        if (paintingConfig == null || paintingConfig.WallSetups == null)
         {
             Debug.LogWarning("No PaintingConfig or WallSetups assigned to apply.");
             return;
         }
 
         // Clear existing pipe objects
-        ClearAllWall();
+        ClearAllWalls();
 
         // Create pipe objects based on the configurations in the painting config
         foreach (var wallSetup in paintingConfig.WallSetups)
@@ -775,7 +789,11 @@ public class PaintingGridObject : MonoBehaviour
         foreach (PaintingPixelConfig pixelConfig in wallSetup.PixelCovered)
         {
             PaintingPixel respectedPixel = GetPixelAtGridPosition(pixelConfig.column, pixelConfig.row);
-            if (respectedPixel != null) wallPixels.Add(respectedPixel);
+            if (respectedPixel != null)
+            {
+                respectedPixel.colorCode = wallSetup.ColorCode;
+                wallPixels.Add(respectedPixel);
+            }
         }
 
         if (wallPixels.Count != wallSetup.PixelCovered.Count) return null;
@@ -854,15 +872,15 @@ public class PaintingGridObject : MonoBehaviour
         return (rowCount, columnCount);
     }
 
-    public void ClearAllWall()
+    public void ClearAllWalls()
     {
         if (wallObjects == null) wallObjects = new List<WallObject>();
         else
         {
             List<WallObject> tmp = new List<WallObject>(wallObjects);
-            foreach (var pipeObj in tmp)
+            foreach (var wallObj in tmp)
             {
-                RemoveWallObject(pipeObj);
+                RemoveWallObject(wallObj);
             }
         }
         wallObjects.Clear();
@@ -884,6 +902,119 @@ public class PaintingGridObject : MonoBehaviour
             }
             _wall.SelfDestroy();
             wallObjects.Remove(_wall);
+        }
+    }
+    #endregion
+
+    #region _keys
+    public void ApplyKeyConfigurations()
+    {
+        if (paintingConfig == null || paintingConfig.KeySetups == null)
+        {
+            Debug.LogWarning("No PaintingConfig or KeySetups assigned to apply.");
+            return;
+        }
+
+        // Clear existing key objects
+        ClearAllKeys();
+
+        // Create key objects based on the configurations in the painting config
+        foreach (var KeySetup in paintingConfig.KeySetups)
+        {
+            if (KeySetup != null)
+            {
+                // Create a new key object based on the setup
+                CreateKeyObject(KeySetup);
+            }
+        }
+    }
+
+    public KeyObject CreateKeyObject(KeyObjectSetup keySetup)
+    {
+        if (keySetup.PixelCovered == null || keySetup.PixelCovered.Count <= 1)
+        {
+            Debug.LogWarning("Cannot create wall.");
+            return null;
+        }
+
+        List<PaintingPixel> keyPixels = new List<PaintingPixel>();
+
+        foreach (PaintingPixelConfig pixelConfig in keySetup.PixelCovered)
+        {
+            PaintingPixel respectedPixel = GetPixelAtGridPosition(pixelConfig.column, pixelConfig.row);
+            if (respectedPixel != null)
+            {
+                respectedPixel.colorCode = keySetup.ColorCode;
+                keyPixels.Add(respectedPixel);
+            }
+        }
+
+        if (keyPixels.Count != keySetup.PixelCovered.Count) return null;
+
+        Vector3 keyPosition = GetCenterByBoundingBox(keyPixels.Select(p => p.PixelComponent).ToList());
+
+        // Create the pipe game object with head transform as parent
+        GameObject keyGO = Instantiate(KeyObjectPrefab, keyPosition, Quaternion.identity, transform);
+        keyGO.name = $"KEY_OBJECT";
+
+        // Get the PipeObject component from the head
+        KeyObject keyObject = keyGO.GetComponent<KeyObject>();
+        if (keyObject == null)
+        {
+            keyObject = keyGO.AddComponent<KeyObject>();
+        }
+
+        // Hide all pixel that covered by key
+        for (int i = 0; i < keyPixels.Count; i++)
+        {
+            keyPixels[i].PixelComponent?.HideVisualOnly();
+        }
+
+        // Add the pipe setup pixels to the pipeObjectsPixels list if they're not already there
+        if (keyObjectsPixels == null) keyObjectsPixels = new List<PaintingPixel>();
+        foreach (PaintingPixel pixel in keyPixels)
+        {
+            if (!keyObjectsPixels.Contains(pixel))
+            {
+                keyObjectsPixels.Add(pixel);
+            }
+        }
+
+        keyObject.Initialize(keyPixels);
+        keyObjects.Add(keyObject);
+        return keyObject;
+    }
+
+    public void ClearAllKeys()
+    {
+        if (keyObjects == null) keyObjects = new List<KeyObject>();
+        else
+        {
+            List<KeyObject> tmp = new List<KeyObject>(keyObjects);
+            foreach (var keyObj in tmp)
+            {
+                RemoveKeyObject(keyObj);
+            }
+        }
+        keyObjects.Clear();
+        keyObjectsPixels.Clear();
+    }
+
+    public void RemoveKeyObject(KeyObject _key)
+    {
+        if (_key == null) return;
+        if (keyObjects.Contains(_key))
+        {
+            foreach (var coverPixel in _key.PaintingPixelsCovered)
+            {
+                if (keyObjectsPixels.Contains(coverPixel))
+                {
+                    coverPixel.PixelComponent?.ShowVisualOnly();
+                    keyObjectsPixels.Remove(coverPixel);
+                }
+            }
+            _key.SelfDestroy();
+            keyObjects.Remove(_key);
         }
     }
     #endregion
@@ -1063,6 +1194,23 @@ public class PaintingGridObject : MonoBehaviour
         float zPos = Center.position.z + row * pixelArrangeSpace; // Positive rows go "up" in z-axis
         xPos = xPos - transform.position.x; //with parent offset
         return new Vector3(xPos, Center.position.y + yOffset, zPos);
+    }
+    public PaintingPixel CreateNewPaintingPixel(PaintingPixelConfig pixelConfig, bool calculatePositon = false)
+    {
+        PaintingPixel pixel = new PaintingPixel
+        {
+            column = pixelConfig.column,
+            row = pixelConfig.row,
+            color = pixelConfig.color,
+            colorCode = pixelConfig.colorCode,
+            Hidden = pixelConfig.Hidden
+        };
+        if (calculatePositon)
+        {
+            pixel.worldPos = CalculatePixelPosition(pixel.column, pixel.row);
+        }
+
+        return pixel;
     }
     #endregion
 }

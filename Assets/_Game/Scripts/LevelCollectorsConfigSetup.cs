@@ -243,7 +243,10 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         // Add pixels from PipeSetups.PixelCovered
         foreach (var pipeSetup in paintingConfig.PipeSetups)
         {
-            allPixels.AddRange(pipeSetup.PixelCovered);
+            foreach(var pixel in pipeSetup.PixelCovered)
+            {
+                allPixels.Add(new PaintingPixel(pixel));
+            }
         }
 
         // Group pixels by outline based on painting size

@@ -22,7 +22,7 @@ public class WallObjectConfigSetupEditor : Editor
             wallConfigSetup.Reload();
         }
 
-        // Button to create a pipe between the selected start and end pixels
+        // Button to create a wall between the selected start and end pixels
         if (GUILayout.Button("Create Wall"))
         {
 
@@ -32,7 +32,7 @@ public class WallObjectConfigSetupEditor : Editor
                 return;
             }
 
-            // Create the pipe
+            // Create the wall
             wallConfigSetup.CreateWall();
 
             // Mark scene as dirty to save changes
@@ -41,23 +41,23 @@ public class WallObjectConfigSetupEditor : Editor
                 EditorUtility.SetDirty(wallConfigSetup.gameObject);
         }
 
-        // Button to clear all pipe setups
+        // Button to clear all wall setups
         if (GUILayout.Button("Clear All Wall Setups"))
         {
             if (EditorUtility.DisplayDialog("Confirm", "Are you sure you want to clear all wall setups?", "Yes", "No"))
             {
                 wallConfigSetup.ClearWallSetups();
 
-                // Also clear pipe objects from the grid if they exist
-                if (wallConfigSetup.gridObject != null && wallConfigSetup.gridObject.pipeObjects != null)
+                // Also clear wall objects from the grid if they exist
+                if (wallConfigSetup.gridObject != null && wallConfigSetup.gridObject.wallObjects != null)
                 {
-                    // Destroy the pipe gameobjects
+                    // Destroy the wall gameobjects
                     List<WallObject> currentWalls = new List<WallObject>(wallConfigSetup.gridObject.wallObjects);
                     foreach (var wallObj in currentWalls)
                     {
                         wallConfigSetup.gridObject.RemoveWallObject(wallObj);
                     }
-                    wallConfigSetup.gridObject.pipeObjects.Clear();
+                    wallConfigSetup.gridObject.wallObjects.Clear();
                 }
 
                 EditorUtility.SetDirty(wallConfigSetup);
@@ -66,7 +66,7 @@ public class WallObjectConfigSetupEditor : Editor
             }
         }
 
-        // Button to import pipe setups to PaintingConfig
+        // Button to import wall setups to PaintingConfig
         if (GUILayout.Button("SAVE"))
         {
             if (EditorUtility.DisplayDialog("Confirm", "Save to config?", "Yes", "No"))
@@ -77,7 +77,7 @@ public class WallObjectConfigSetupEditor : Editor
                     return;
                 }
 
-                wallConfigSetup.ImportPipesToPaintingConfig(wallConfigSetup.gridObject.paintingConfig);
+                wallConfigSetup.ImportWallsToPaintingConfig(wallConfigSetup.gridObject.paintingConfig);
                 EditorUtility.SetDirty(wallConfigSetup.gridObject.paintingConfig);
             }
         }
@@ -89,12 +89,12 @@ public class WallObjectConfigSetupEditor : Editor
             EditorGUILayout.LabelField($"Wall Setups Created: {wallConfigSetup.wallObjectSetups.Count}", EditorStyles.helpBox);
         }
 
-        if (wallConfigSetup.gridObject != null && wallConfigSetup.gridObject.pipeObjects != null)
+        if (wallConfigSetup.gridObject != null && wallConfigSetup.gridObject.wallObjects != null)
         {
-            EditorGUILayout.LabelField($"Wall Objects in Scene: {wallConfigSetup.gridObject.pipeObjects.Count}", EditorStyles.helpBox);
+            EditorGUILayout.LabelField($"Wall Objects in Scene: {wallConfigSetup.gridObject.wallObjects.Count}", EditorStyles.helpBox);
         }
 
-        // Add information about pipe rotation
+        // Add information about wall rotation
         EditorGUILayout.Space();
         EditorGUILayout.HelpBox("Note: Horizontal Wall (in same row) will be rotated 90 degrees on Y-axis. Vertical pipes (in same column) maintain default orientation.", MessageType.Info);
     }

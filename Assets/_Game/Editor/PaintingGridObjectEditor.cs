@@ -34,7 +34,9 @@ public class PaintingGridObjectEditor : Editor
         // Clear Grid to White button
         if (GUILayout.Button("Clear Painting"))
         {
-            paintingGridObject.ClearAllPipe();
+            paintingGridObject.ClearAllPipes();
+            paintingGridObject.ClearAllWalls();
+            paintingGridObject.ClearAllKeys();
             paintingGridObject.ClearToWhite();
             EditorUtility.SetDirty(target);
             Debug.Log("Grid cleared to white successfully.");

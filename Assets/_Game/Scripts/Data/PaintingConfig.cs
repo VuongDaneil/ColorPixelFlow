@@ -5,19 +5,25 @@ using System.Collections.Generic;
 public class PaintingConfig : ScriptableObject
 {
     [SerializeField]
-    private List<PaintingPixelConfig> _pixels = new List<PaintingPixelConfig>();
-    
-    [SerializeField]
     private Vector2 _paintingSize;
-    
+
     [SerializeField]
     private Sprite _sprite;
-    
+
+    [SerializeField]
+    private List<PaintingPixelConfig> _pixels = new List<PaintingPixelConfig>();
+
+    [Header("SPECIAL OBJECT: PIPE")]
     [SerializeField]
     private List<PipeObjectSetup> _pipeSetups = new List<PipeObjectSetup>();
 
+    [Header("SPECIAL OBJECT: WALL")]
     [SerializeField]
     private List<WallObjectSetup> _wallSetups = new List<WallObjectSetup>();
+
+    [Header("SPECIAL OBJECT: KEY")]
+    [SerializeField]
+    private List<KeyObjectSetup> _keySetups = new List<KeyObjectSetup>();
 
     public List<PaintingPixelConfig> Pixels
     {
@@ -47,6 +53,12 @@ public class PaintingConfig : ScriptableObject
     {
         get { return _wallSetups; }
         set { _wallSetups = value; }
+    }
+
+    public List<KeyObjectSetup> KeySetups
+    {
+        get { return _keySetups; }
+        set { _keySetups = value; }
     }
 
     /// <summary>

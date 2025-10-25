@@ -19,6 +19,9 @@ public class LevelConfigSetup : MonoBehaviour
     public WallObjectConfigSetup WallObjectSetup;
 
     [Space]
+    public KeyObjectConfigSetup KeyObjectSetup;
+
+    [Space]
     public LevelCollectorsSystem LevelCollectorsManager;
     public LevelCollectorsConfigSetup LevelCollectorsSetup;
     #endregion
@@ -46,6 +49,11 @@ public class LevelConfigSetup : MonoBehaviour
         {
             WallObjectSetup.CurrentLevelWallObjectSetups = CurrentLevelPaintingConfig.WallSetups;
         }
+
+        if (KeyObjectSetup.gridObject != null)
+        {
+            KeyObjectSetup.CurrentLevelKeyObjectSetups = CurrentLevelPaintingConfig.KeySetups;
+        }
     }
     #endregion
 
@@ -61,8 +69,9 @@ public class LevelConfigSetup : MonoBehaviour
     public void ClearLevel()
     {
         LevelCollectorsManager.ClearExistingCollectors();
-        CurrentGridObject.ClearAllPipe();
-        CurrentGridObject.ClearAllWall();
+        CurrentGridObject.ClearAllKeys();
+        CurrentGridObject.ClearAllPipes();
+        CurrentGridObject.ClearAllWalls();
         CurrentGridObject.ClearToWhite();
     }
     #endregion

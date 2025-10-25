@@ -44,6 +44,20 @@ public class PaintingPixel
         this.Hidden = hidden;
     }
 
+    public PaintingPixel(PaintingPixelConfig config)
+    {
+        this.name = $"Pixel ({config.column}, {config.row})";
+        this.column = config.column;
+        this.row = config.row;
+        this.color = config.color;
+        this.colorCode = config.colorCode;
+        this.worldPos = Vector3.zero;
+        this.Hearts = 1;
+        this.destroyed = false;
+        this.pixelObject = null;
+        this.Hidden = config.Hidden;
+    }
+
     public void SetUp(Color color, string colorCode, bool hidden)
     {
         this.color = color;

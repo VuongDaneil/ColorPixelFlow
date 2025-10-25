@@ -102,55 +102,30 @@ public class PipeObjectConfigSetup : MonoBehaviour
             Debug.LogWarning("Pipe must be either horizontal (same row) or vertical (same column). Cannot create pipe.");
             return;
         }
-        
+
         // Create and setup the pipe in the scene - this will also create the pipe pixels
-        var (newPipeObject, newPipePixels) = SetupNewPipeInSceneWithPixels(startPixel, endPixel, ColorCode);
-        
-        if (newPipeObject != null && newPipePixels != null)
+        List<PaintingPixelConfig> pipePixelConfigs = GetPaintingPixelsInBetween(startPixel, endPixel);
+        PipeObjectSetup wallSetup = new PipeObjectSetup(pipePixelConfigs, ColorCode, Scale);
+
+        var newWallObject = SetupNewPipeInScene(wallSetup);
+
+        if (newWallObject != null)
         {
-            // Create the PipeObjectSetup configuration using the newly created pipe pixels
-            PipeObjectSetup pipeSetup = new PipeObjectSetup(newPipePixels, ColorCode, Scale);
-            
-            // Add to the list of pipe setups
-            AddPipeSetup(pipeSetup);
-            
-            // Add the created pipe to the grid object's pipe list
-            if (gridObject.pipeObjects == null)
-                gridObject.pipeObjects = new List<PipeObject>();
-                
-            gridObject.pipeObjects.Add(newPipeObject);
+            AddPipeSetup(wallSetup);
         }
     }
 
-
-
-    /// <summary>
-    /// Set up the actual pipe object in the scene
-    /// </summary>
-    /// <param name="startPixel">Start pixel (head)</param>
-    /// <param name="endPixel">End pixel (tail)</param>
-    /// <param name="colorCode">Color code for the pipe</param>
-    /// <returns>Tuple with the created PipeObject component and list of new pipe pixels</returns>
-    private (PipeObject pipeObject, List<PaintingPixel> pipePixels) SetupNewPipeInSceneWithPixels(PaintingPixel startPixel, PaintingPixel endPixel, string colorCode)
+    public List<PaintingPixelConfig> GetPaintingPixelsInBetween(PaintingPixel startPixel, PaintingPixel endPixel)
     {
-        if (PipeHeadPrefab == null || PipeBodyPrefab == null || PipeTailPrefab == null)
-        {
-            Debug.LogError("Pipe prefabs are not assigned. Cannot create pipe.");
-            return (null, null);
-        }
-        
-        // Create the pipe game object with head transform as parent
-        GameObject pipeGO = new GameObject($"Pipe ({startPixel.column},{startPixel.row}) to ({endPixel.column},{endPixel.row})");
-        pipeGO.transform.SetParent(gridObject.transform);
+        List<PaintingPixelConfig> pixelsInBetween = new List<PaintingPixelConfig>();
 
         // Determine if pipe is horizontal or vertical
         bool isHorizontal = startPixel.row == endPixel.row;
         bool isVertical = startPixel.column == endPixel.column;
-        
+
         // Create new PaintingPixel and PaintingPixelComponent for the head of the pipe (outside the grid)
         // First get the actual grid pixel for head to make sure we have the correct world position
-        PaintingPixel actualGridHeadPixel = gridObject.GetPixelAt(startPixel.column, startPixel.row);
-        Vector3 headWorldPos = CalculatePipePosition(actualGridHeadPixel ?? startPixel, isHorizontal);
+        PaintingPixelConfig actualGridHeadPixel = new PaintingPixelConfig(gridObject.GetPixelAt(startPixel.column, startPixel.row));
         int currentPixelColumn = startPixel.column;
         int currentPixelRow = startPixel.row;
 
@@ -164,62 +139,43 @@ public class PipeObjectConfigSetup : MonoBehaviour
             if (startPixel.column < 0) currentPixelColumn -= PipeSpaceFromGrid;
             else currentPixelColumn += PipeSpaceFromGrid;
         }
-        PaintingPixel headPipePixel = CreatePipePixel(currentPixelColumn, currentPixelRow, headWorldPos, colorCode, hidden: false); // false means tail
-        
-        // Create the head at the calculated position
-        GameObject headGO = Instantiate(PipeHeadPrefab, headWorldPos, Quaternion.identity, pipeGO.transform);
-        headGO.name = "PipeHead";
-        
-        // Apply direct scale to the head
-        headGO.transform.localScale = Scale;
-        headGO.transform.localPosition = headWorldPos;
-        
-        Transform headTransform = headGO.transform;
-        
-        // Get the PipeObject component from the head (the head prefab already has PipeObject.cs)
-        PipeObject pipeObject = headTransform.GetComponent<PipeObject>();
-        if (pipeObject == null)
-        {
-            Debug.LogWarning("PipeHeadPrefab does not have PipeObject component. Please ensure the head prefab has PipeObject.cs attached.");
-            return (null, null);
-        }
-        
-        // Change the color of the head part using PipePartVisualHandle
-        PipePartVisualHandle headVisualHandle = headGO.GetComponent<PipePartVisualHandle>();
-        if (headVisualHandle == null)
-            headVisualHandle = headGO.GetComponentInChildren<PipePartVisualHandle>();
-        if (headVisualHandle != null)
-            headVisualHandle.SetColor(headPipePixel.color);
-        
-        // Initialize the list for body parts
-        List<Transform> bodyParts = new List<Transform>();
-        
-        // Create new PaintingPixel and PaintingPixelComponent for body parts and add them to grid object's pipe pixels list
-        List<PaintingPixel> pipePixels = new List<PaintingPixel>();
-        pipePixels.Add(headPipePixel); // Add the head pipe pixel first
-        bodyParts.Add(headGO.transform);
 
+        PaintingPixelConfig headPipePixel = new PaintingPixelConfig()
+        {
+            column = currentPixelColumn,
+            row = currentPixelRow,
+            color = colorPalette.GetColorByCode(ColorCode),
+            colorCode = ColorCode,
+            Hidden = false,
+        };
+        pixelsInBetween.Add(headPipePixel); // Add the head pipe pixel first
 
         if (isHorizontal)
         {
             int row = startPixel.row;
             int startCol = Mathf.Min(startPixel.column, endPixel.column);
             int endCol = Mathf.Max(startPixel.column, endPixel.column);
-            
+
             // Create PaintingPixel objects for all body parts between start and end
             for (int col = startCol + 1; col < endCol; col++)
             {
                 // Get the original grid pixel to use its world position for reference
-                PaintingPixel gridPixel = gridObject.GetPixelAt(col, row);
+                PaintingPixelConfig gridPixel = new PaintingPixelConfig(gridObject.GetPixelAt(col, row));
                 if (gridPixel != null)
                 {
-                    Vector3 bodyPos = CalculatePipePosition(gridPixel, isHorizontal);
                     currentPixelRow = row;
                     currentPixelColumn = col;
                     if (startPixel.row < 0) currentPixelRow -= PipeSpaceFromGrid;
                     else currentPixelRow += PipeSpaceFromGrid;
-                    PaintingPixel bodyPipePixel = CreatePipePixel(currentPixelColumn, currentPixelRow, bodyPos, colorCode, hidden: false);
-                    pipePixels.Add(bodyPipePixel);
+                    PaintingPixelConfig bodyPipePixel = new PaintingPixelConfig()
+                    {
+                        column = currentPixelColumn,
+                        row = currentPixelRow,
+                        color = colorPalette.GetColorByCode(ColorCode),
+                        colorCode = ColorCode,
+                        Hidden = false,
+                    };
+                    pixelsInBetween.Add(bodyPipePixel);
                 }
             }
         }
@@ -228,51 +184,34 @@ public class PipeObjectConfigSetup : MonoBehaviour
             int column = startPixel.column;
             int startRow = Mathf.Min(startPixel.row, endPixel.row);
             int endRow = Mathf.Max(startPixel.row, endPixel.row);
-            
+
             // Create PaintingPixel objects for all body parts between start and end
             for (int row = startRow + 1; row < endRow; row++)
             {
                 // Get the original grid pixel to use its world position for reference
-                PaintingPixel gridPixel = gridObject.GetPixelAt(column, row);
+                PaintingPixelConfig gridPixel = new PaintingPixelConfig(gridObject.GetPixelAt(column, row));
                 if (gridPixel != null)
                 {
-                    Vector3 bodyPos = CalculatePipePosition(gridPixel, isHorizontal);
                     currentPixelRow = row;
                     currentPixelColumn = column;
                     if (startPixel.column < 0) currentPixelColumn -= PipeSpaceFromGrid;
                     else currentPixelColumn += PipeSpaceFromGrid;
-                    PaintingPixel bodyPipePixel = CreatePipePixel(currentPixelColumn, currentPixelRow, bodyPos, colorCode, hidden: false);
-                    pipePixels.Add(bodyPipePixel);
+                    PaintingPixelConfig bodyPipePixel = new PaintingPixelConfig()
+                    {
+                        column = currentPixelColumn,
+                        row = currentPixelRow,
+                        color = colorPalette.GetColorByCode(ColorCode),
+                        colorCode = ColorCode,
+                        Hidden = false,
+                    };
+                    pixelsInBetween.Add(bodyPipePixel);
                 }
             }
         }
-        
-        // Create body parts at their calculated positions
-        foreach (var pipePixel in pipePixels)
-        {
-            // Skip the head since it's already created
-            if (pipePixel != headPipePixel)
-            {
-                GameObject bodyGO = Instantiate(PipeBodyPrefab, pipePixel.worldPos, Quaternion.identity, pipeGO.transform);
-                bodyGO.name = "PipeBody";
-                // Apply direct scale to the body part
-                bodyGO.transform.localScale = Scale;
-                bodyGO.transform.localPosition = pipePixel.worldPos;
-                bodyParts.Add(bodyGO.transform);
-                
-                // Change the color of the pipe part using PipePartVisualHandle
-                PipePartVisualHandle visualHandle = bodyGO.GetComponent<PipePartVisualHandle>();
-                if (visualHandle == null)
-                    visualHandle = bodyGO.GetComponentInChildren<PipePartVisualHandle>();
-                if (visualHandle != null)
-                    visualHandle.SetColor(pipePixel.color);
-            }
-        }
-        
+
         // Create new PaintingPixel and PaintingPixelComponent for the tail of the pipe (outside the grid)
         // First get the actual grid pixel for tail to make sure we have the correct world position
-        PaintingPixel actualGridTailPixel = gridObject.GetPixelAt(endPixel.column, endPixel.row);
-        Vector3 tailWorldPos = CalculatePipePosition(actualGridTailPixel ?? endPixel, isHorizontal); // true means tail
+        PaintingPixelConfig actualGridTailPixel = new PaintingPixelConfig(gridObject.GetPixelAt(endPixel.column, endPixel.row));
         currentPixelRow = endPixel.row;
         currentPixelColumn = endPixel.column;
         if (isHorizontal)
@@ -285,210 +224,51 @@ public class PipeObjectConfigSetup : MonoBehaviour
             if (startPixel.column < 0) currentPixelColumn -= PipeSpaceFromGrid;
             else currentPixelColumn += PipeSpaceFromGrid;
         }
-        PaintingPixel tailPipePixel = CreatePipePixel(currentPixelColumn, currentPixelRow, tailWorldPos, colorCode, hidden: false); // true means tail
-        pipePixels.Add(tailPipePixel); // Add the tail pipe pixel last
-        
-        // Create tail at the calculated position
-        GameObject tailGO = Instantiate(PipeTailPrefab, tailWorldPos, Quaternion.identity, pipeGO.transform);
-        tailGO.name = "PipeTail";
-        // Apply direct scale to the tail
-        tailGO.transform.localScale = Scale;
-        tailGO.transform.localPosition = tailWorldPos;
-        
-        // Change the color of the tail part using PipePartVisualHandle
-        PipePartVisualHandle tailVisualHandle = tailGO.GetComponent<PipePartVisualHandle>();
-        if (tailVisualHandle == null)
-            tailVisualHandle = tailGO.GetComponentInChildren<PipePartVisualHandle>();
-        if (tailVisualHandle != null)
-            tailVisualHandle.SetColor(tailPipePixel.color);
-        
-        bodyParts.Add(tailGO.transform); // Add tail as the last body part
+        PaintingPixelConfig tailPipePixel = new PaintingPixelConfig()
+        {
+            column = currentPixelColumn,
+            row = currentPixelRow,
+            color = colorPalette.GetColorByCode(ColorCode),
+            colorCode = ColorCode,
+            Hidden = false,
+        };
+        pixelsInBetween.Add(tailPipePixel);
 
         // Sort pipe pixels from head to tail based on original grid position
-        if (pipePixels.Count > 1)
+        if (pixelsInBetween.Count > 1)
         {
             if (isHorizontal)
             {
                 if (startPixel.column < endPixel.column)
-                    pipePixels.Sort((p1, p2) => p1.column.CompareTo(p2.column));
+                    pixelsInBetween.Sort((p1, p2) => p1.column.CompareTo(p2.column));
                 else
-                    pipePixels.Sort((p1, p2) => p2.column.CompareTo(p1.column));
+                    pixelsInBetween.Sort((p1, p2) => p2.column.CompareTo(p1.column));
             }
             else if (isVertical)
             {
                 if (startPixel.row < endPixel.row)
-                    pipePixels.Sort((p1, p2) => p1.row.CompareTo(p2.row));
+                    pixelsInBetween.Sort((p1, p2) => p1.row.CompareTo(p2.row));
                 else
-                    pipePixels.Sort((p1, p2) => p2.row.CompareTo(p1.row));
+                    pixelsInBetween.Sort((p1, p2) => p2.row.CompareTo(p1.row));
             }
         }
 
-        // Initialize the pipe object with head and body parts, and orientation
-        pipeObject.Initialize(headTransform, bodyParts, pipePixels, isHorizontal);
-
-        // Apply orientation rotation if needed (this is handled by the PipeObject itself)
-        pipeObject.ApplyOrientationRotation();
-
-        pipeGO.transform.localPosition = Vector3.zero;
-        for (int i = 0; i < pipePixels.Count; i++)
-        {
-            bodyParts[i].localPosition = pipePixels[i].worldPos;
-        }
-
-        return (pipeObject, pipePixels);
+        return pixelsInBetween;
     }
 
-    private (PipeObject pipeObject, List<PaintingPixel> pipePixels) SpawnAPipeInScene(PipeObjectSetup setup)
+
+    /// <summary>
+    /// Set up the actual pipe object in the scene
+    /// </summary>
+    /// <param name="startPixel">Start pixel (head)</param>
+    /// <param name="endPixel">End pixel (tail)</param>
+    /// <param name="colorCode">Color code for the pipe</param>
+    /// <returns>Tuple with the created PipeObject component and list of new pipe pixels</returns>
+    private PipeObject SetupNewPipeInScene(PipeObjectSetup setup)
     {
-        if (PipeHeadPrefab == null || PipeBodyPrefab == null || PipeTailPrefab == null)
-        {
-            Debug.LogError("Pipe prefabs are not assigned. Cannot create pipe.");
-            return (null, null);
-        }
-
-        var startPixel = setup.PixelCovered[0];
-        var endPixel = setup.PixelCovered[^1];
-
-        // Create the pipe game object with head transform as parent
-        GameObject pipeGO = new GameObject($"Pipe ({startPixel.column},{startPixel.row}) to ({endPixel.column},{endPixel.row})");
-        pipeGO.transform.SetParent(gridObject.transform);
-
-        // Determine if pipe is horizontal or vertical
-        bool isHorizontal = startPixel.row == endPixel.row;
-        bool isVertical = startPixel.column == endPixel.column;
-
-        // Create new PaintingPixel and PaintingPixelComponent for the head of the pipe (outside the grid)
-
-        PaintingPixel headPipePixel = CreatePipePixel(startPixel.column, startPixel.row, startPixel.worldPos, setup.ColorCode, hidden: false); // false means tail
-
-        // Create the head at the calculated position
-        GameObject headGO = Instantiate(PipeHeadPrefab, startPixel.worldPos, Quaternion.identity, pipeGO.transform);
-        headGO.name = "PipeHead";
-
-        // Apply direct scale to the head
-        headGO.transform.localScale = setup.Scale;
-
-        Transform headTransform = headGO.transform;
-
-        // Get the PipeObject component from the head (the head prefab already has PipeObject.cs)
-        PipeObject pipeObject = headTransform.GetComponent<PipeObject>();
-        if (pipeObject == null)
-        {
-            Debug.LogWarning("PipeHeadPrefab does not have PipeObject component. Please ensure the head prefab has PipeObject.cs attached.");
-            return (null, null);
-        }
-
-        // Change the color of the head part using PipePartVisualHandle
-        PipePartVisualHandle headVisualHandle = headGO.GetComponent<PipePartVisualHandle>();
-        if (headVisualHandle == null)
-            headVisualHandle = headGO.GetComponentInChildren<PipePartVisualHandle>();
-        if (headVisualHandle != null)
-            headVisualHandle.SetColor(headPipePixel.color);
-
-        // Initialize the list for body parts
-        List<Transform> bodyParts = new List<Transform>();
-
-        // Create new PaintingPixel and PaintingPixelComponent for body parts and add them to grid object's pipe pixels list
-        List<PaintingPixel> pipePixels = new List<PaintingPixel>();
-        pipePixels.Add(headPipePixel); // Add the head pipe pixel first
-        bodyParts.Add(headGO.transform);
-        if (isHorizontal)
-        {
-            // Create PaintingPixel objects for all body parts between start and end
-            for (int i = 1; i < setup.PixelCovered.Count - 1; i++) //except for head and tail
-            {
-                Vector3 bodyPos = setup.PixelCovered[i].worldPos;
-
-                PaintingPixel bodyPipePixel = CreatePipePixel(setup.PixelCovered[i].column, setup.PixelCovered[i].row, bodyPos, setup.PixelCovered[i].colorCode, hidden: false);
-                pipePixels.Add(bodyPipePixel);
-            }
-        }
-        else if (isVertical)
-        {
-            for (int i = 1; i < setup.PixelCovered.Count - 1; i++) //except for head and tail
-            {
-                Vector3 bodyPos = setup.PixelCovered[i].worldPos;
-
-                PaintingPixel bodyPipePixel = CreatePipePixel(setup.PixelCovered[i].column, setup.PixelCovered[i].row, bodyPos, setup.PixelCovered[i].colorCode, hidden: false);
-                pipePixels.Add(bodyPipePixel);
-            }
-        }
-
-        // Create body parts at their calculated positions
-        foreach (var pipePixel in pipePixels)
-        {
-            // Skip the head since it's already created
-            if (pipePixel != headPipePixel)
-            {
-                GameObject bodyGO = Instantiate(PipeBodyPrefab, pipePixel.worldPos, Quaternion.identity, pipeGO.transform);
-                bodyGO.name = "PipeBody";
-                // Apply direct scale to the body part
-                bodyGO.transform.localScale = setup.Scale;
-                bodyParts.Add(bodyGO.transform);
-
-                // Change the color of the pipe part using PipePartVisualHandle
-                PipePartVisualHandle visualHandle = bodyGO.GetComponent<PipePartVisualHandle>();
-                if (visualHandle == null)
-                    visualHandle = bodyGO.GetComponentInChildren<PipePartVisualHandle>();
-                if (visualHandle != null)
-                    visualHandle.SetColor(pipePixel.color);
-            }
-        }
-
-        // Create new PaintingPixel and PaintingPixelComponent for the tail of the pipe (outside the grid)
-        PaintingPixel tailPipePixel = CreatePipePixel(endPixel.column, endPixel.row, endPixel.worldPos, endPixel.colorCode, hidden: false); // true means tail
-        pipePixels.Add(tailPipePixel); // Add the tail pipe pixel last
-
-        // Create tail at the calculated position
-        GameObject tailGO = Instantiate(PipeTailPrefab, endPixel.worldPos, Quaternion.identity, pipeGO.transform);
-        tailGO.name = "PipeTail";
-        // Apply direct scale to the tail
-        tailGO.transform.localScale = setup.Scale;
-
-        // Change the color of the tail part using PipePartVisualHandle
-        PipePartVisualHandle tailVisualHandle = tailGO.GetComponent<PipePartVisualHandle>();
-        if (tailVisualHandle == null)
-            tailVisualHandle = tailGO.GetComponentInChildren<PipePartVisualHandle>();
-        if (tailVisualHandle != null)
-            tailVisualHandle.SetColor(tailPipePixel.color);
-
-        bodyParts.Add(tailGO.transform); // Add tail as the last body part
-
-        // Sort pipe pixels from head to tail based on original grid position
-        if (pipePixels.Count > 1)
-        {
-            if (isHorizontal)
-            {
-                if (startPixel.column < endPixel.column)
-                    pipePixels.Sort((p1, p2) => p1.column.CompareTo(p2.column));
-                else
-                    pipePixels.Sort((p1, p2) => p2.column.CompareTo(p1.column));
-            }
-            else if (isVertical)
-            {
-                if (startPixel.row < endPixel.row)
-                    pipePixels.Sort((p1, p2) => p1.row.CompareTo(p2.row));
-                else
-                    pipePixels.Sort((p1, p2) => p2.row.CompareTo(p1.row));
-            }
-        }
-
-        // Initialize the pipe object with head and body parts, and orientation
-        pipeObject.Initialize(headTransform, bodyParts, pipePixels, isHorizontal);
-
-        // Apply orientation rotation if needed (this is handled by the PipeObject itself)
-        pipeObject.ApplyOrientationRotation();
-
-        pipeGO.transform.localPosition = Vector3.zero;
-        for (int i = 0; i < setup.PixelCovered.Count; i++)
-        {
-            bodyParts[i].localPosition = setup.PixelCovered[i].worldPos;
-        }
-
-        return (pipeObject, pipePixels);
+        PipeObject pipeObject = gridObject.CreatePipeObject(setup);
+        return pipeObject;
     }
-
-
 
     /// <summary>
     /// Create a new PaintingPixel and PaintingPixelComponent for a pipe part
@@ -631,56 +411,15 @@ public class PipeObjectConfigSetup : MonoBehaviour
 
         Debug.Log($"Imported {pipeObjectSetups.Count} pipe setups to PaintingConfig.");
     }
-    
-    /// <summary>
-    /// Apply all pipe configurations from a PaintingConfig asset to this setup
-    /// </summary>
-    /// <param name="paintingConfig">The PaintingConfig to import from</param>
-    public void ApplyPaintingConfigPipes(PaintingConfig paintingConfig)
-    {
-        if (paintingConfig == null)
-        {
-            Debug.LogError("PaintingConfig is null. Cannot apply pipes.");
-            return;
-        }
-        
-        // Clear existing pipe setups in this component
-        pipeObjectSetups.Clear();
-        
-        // Copy all pipe setups from the config to this component
-        if (paintingConfig.PipeSetups != null)
-        {
-            foreach (PipeObjectSetup pipeSetup in paintingConfig.PipeSetups)
-            {
-                if (pipeSetup != null)
-                {
-                    pipeObjectSetups.Add(pipeSetup);
-                }
-            }
-        }
-        int tmp = paintingConfig.PipeSetups != null ? paintingConfig.PipeSetups.Count : 0;
-        Debug.Log($"Applied {tmp} pipe setups from PaintingConfig.");
-    }
 
     public void Reload()
     {
+        gridObject.ClearAllPipes();
         pipeObjectSetups = new List<PipeObjectSetup>(CurrentLevelObjectSetups);
         //return;
         foreach (var pipe in CurrentLevelObjectSetups)
         {
-            var (newPipeObject, newPipePixels) = SpawnAPipeInScene(pipe);
-
-            if (newPipeObject != null && newPipePixels != null)
-            {
-                // Create the PipeObjectSetup configuration using the newly created pipe pixels
-                PipeObjectSetup pipeSetup = new PipeObjectSetup(newPipePixels, ColorCode, Scale);
-
-                // Add the created pipe to the grid object's pipe list
-                if (gridObject.pipeObjects == null)
-                    gridObject.pipeObjects = new List<PipeObject>();
-
-                gridObject.pipeObjects.Add(newPipeObject);
-            }
+            gridObject.CreatePipeObject(pipe);
         }
     }
 }

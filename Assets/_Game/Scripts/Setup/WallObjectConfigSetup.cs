@@ -5,9 +5,9 @@ using UnityEngine;
 
 public class WallObjectConfigSetup : MonoBehaviour
 {
-    [Header("Pipe Configuration")]
-    public List<WallObjectSetup> CurrentLevelWallObjectSetups; // To store all the pipe that being setup
-    public List<WallObjectSetup> wallObjectSetups; // To store all the pipe that being setup
+    [Header("Wall Configuration")]
+    public List<WallObjectSetup> CurrentLevelWallObjectSetups; // To store all the Wall that being setup
+    public List<WallObjectSetup> wallObjectSetups; // To store all the Wall that being setup
 
     [Header("References")]
     public PaintingGridObject gridObject; // GridObject (PaintingGridObject.cs)
@@ -16,14 +16,14 @@ public class WallObjectConfigSetup : MonoBehaviour
     public GameObject WallPrefab;
 
     [Header("Wall Properties")]
-    public string ColorCode = "Default"; // Color of the pipe
-    public int WallHearts = 1;      // Hearts of the pipe
-    public ColorPalleteData colorPalette; // The color source that pipe will get from
+    public string ColorCode = "Default"; // Color of the Wall
+    public int WallHearts = 1;      // Hearts of the Wall
+    public ColorPalleteData colorPalette; // The color source that Wall will get from
 
-    [Header("Pipe Positioning")]
-    public int PipeSpaceFromGrid = 1;     // Space from grid for placing pipes outside the grid
+    [Header("Wall Positioning")]
+    public int WallSpaceFromGrid = 1;     // Space from grid for placing Wall outside the grid
 
-    [Header("Pipe Setup")]
+    [Header("Wall Setup")]
     public List<PaintingPixelComponent> WallPixelComponents;
 
     private void Awake()
@@ -32,9 +32,9 @@ public class WallObjectConfigSetup : MonoBehaviour
     }
 
     /// <summary>
-    /// Add a pipe setup to the list
+    /// Add a wall setup to the list
     /// </summary>
-    /// <param name="wallSetup">The pipe setup to add</param>
+    /// <param name="wallSetup">The wall setup to add</param>
     public void AddWallSetup(WallObjectSetup wallSetup)
     {
         if (wallObjectSetups == null) wallObjectSetups = new List<WallObjectSetup>();
@@ -45,19 +45,19 @@ public class WallObjectConfigSetup : MonoBehaviour
     }
 
     /// <summary>
-    /// Remove a pipe setup from the list
+    /// Remove a wall setup from the list
     /// </summary>
-    /// <param name="pipeSetup">The pipe setup to remove</param>
-    public void RemovePipeSetup(WallObjectSetup pipeSetup)
+    /// <param name="wallSetup">The wall setup to remove</param>
+    public void RemoveWallSetup(WallObjectSetup wallSetup)
     {
-        if (pipeSetup != null)
+        if (wallSetup != null)
         {
-            wallObjectSetups.Remove(pipeSetup);
+            wallObjectSetups.Remove(wallSetup);
         }
     }
 
     /// <summary>
-    /// Clear all pipe setups
+    /// Clear all wall setups
     /// </summary>
     public void ClearWallSetups()
     {
@@ -65,7 +65,7 @@ public class WallObjectConfigSetup : MonoBehaviour
     }
 
     /// <summary>
-    /// Create a pipe between StartPixel and EndPixel based on current settings
+    /// Create a wall between StartPixel and EndPixel based on current settings
     /// </summary>
     public void CreateWall()
     {
@@ -75,14 +75,14 @@ public class WallObjectConfigSetup : MonoBehaviour
             return;
         }
 
-        // Validate that the pipe should be straight (horizontal or vertical)
+        // Validate that the wall should be straight (horizontal or vertical)
         if (!IsValidWallOrientation(WallPixelComponents))
         {
-            Debug.LogWarning("Wall must be either horizontal (same row) or vertical (same column). Cannot create pipe.");
+            Debug.LogWarning("Wall must be either horizontal (same row) or vertical (same column). Cannot create wall.");
             return;
         }
 
-        // Create and setup the pipe in the scene - this will also create the pipe pixels
+        // Create and setup the wall in the scene - this will also create the wall pixels
         List<PaintingPixelConfig> wallPixelConfigs = new List<PaintingPixelConfig>();
         foreach (var pixelComponent in WallPixelComponents)
         {
@@ -90,7 +90,7 @@ public class WallObjectConfigSetup : MonoBehaviour
         }
         WallObjectSetup wallSetup = new WallObjectSetup(wallPixelConfigs, ColorCode, WallHearts);
 
-        var newWallObject = SetupNewWallInSceneWithPixels(wallSetup);
+        var newWallObject = SetupNewWallInScene(wallSetup);
 
         if (newWallObject != null)
         {
@@ -101,13 +101,13 @@ public class WallObjectConfigSetup : MonoBehaviour
 
 
     /// <summary>
-    /// Set up the actual pipe object in the scene
+    /// Set up the actual wall object in the scene
     /// </summary>
     /// <param name="startPixel">Start pixel (head)</param>
     /// <param name="endPixel">End pixel (tail)</param>
-    /// <param name="colorCode">Color code for the pipe</param>
-    /// <returns>Tuple with the created PipeObject component and list of new pipe pixels</returns>
-    private WallObject SetupNewWallInSceneWithPixels(WallObjectSetup setup)
+    /// <param name="colorCode">Color code for the wall</param>
+    /// <returns>Tuple with the created WallObject component and list of new wall pixels</returns>
+    private WallObject SetupNewWallInScene(WallObjectSetup setup)
     {
         WallObject wallObject = gridObject.CreateWallObject(setup);
 
@@ -115,53 +115,11 @@ public class WallObjectConfigSetup : MonoBehaviour
     }
 
     /// <summary>
-    /// Create a new PaintingPixel and PaintingPixelComponent for a pipe part
-    /// </summary>
-    /// <param name="column">Column index in the grid that this pipe part corresponds to</param>
-    /// <param name="row">Row index in the grid that this pipe part corresponds to</param>
-    /// <param name="worldPos">World position for the pipe part</param>
-    /// <param name="isHorizontal">Whether the pipe is horizontal</param>
-    /// <param name="isTail">Whether this is the tail part of the pipe</param>
-    /// <param name="colorCode">Color code for the pipe part</param>
-    /// <returns>New PaintingPixel object for the pipe part</returns>
-    private PaintingPixel CreatePipePixel(int column, int row, Vector3 worldPos, string colorCode, bool hidden)
-    {
-        // Get the color from the color palette using the color code
-        Color pipeColor = Color.white; // default
-        if (colorPalette != null && !string.IsNullOrEmpty(colorCode))
-        {
-            pipeColor = colorPalette.GetColorByCode(colorCode);
-        }
-
-        // Create a GameObject for the pipe pixel
-        GameObject pipePixelGO = new GameObject($"PipePixel ({column}, {row})");
-        pipePixelGO.transform.SetParent(gridObject.transform);
-        pipePixelGO.transform.localPosition = worldPos;
-
-        // Add a PaintingPixelComponent to the GameObject
-        PaintingPixelComponent pipePixelComponent = pipePixelGO.AddComponent<PaintingPixelComponent>();
-
-        // Create the PaintingPixel object
-        PaintingPixel pipePixel = new PaintingPixel(column, row, pipeColor, worldPos, 1, hidden: hidden, pipePixelGO);
-        pipePixel.SetUp(pipeColor, colorCode, hidden); // Set both color and color code
-
-        // Set the pixel data for the component
-        pipePixelComponent.SetUp(pipePixel);
-
-        // Add the pipe pixel to the grid object's list of pipe pixels
-        if (gridObject.wallObjectsPixels == null)
-            gridObject.wallObjectsPixels = new List<PaintingPixel>();
-        gridObject.wallObjectsPixels.Add(pipePixel);
-
-        return pipePixel;
-    }
-
-    /// <summary>
-    /// Validates if the pipe orientation is valid (horizontal or vertical only)
+    /// Validates if the wall orientation is valid (horizontal or vertical only)
     /// </summary>
     /// <param name="startPixel">Start pixel (head)</param>
     /// <param name="endPixel">End pixel (tail)</param>
-    /// <returns>True if pipe orientation is valid, false otherwise</returns>
+    /// <returns>True if wall orientation is valid, false otherwise</returns>
     private bool IsValidWallOrientation(List<PaintingPixelComponent> _wallPixels)
     {
         if (_wallPixels == null || _wallPixels.Count == 0)
@@ -216,96 +174,47 @@ public class WallObjectConfigSetup : MonoBehaviour
     }
 
     /// <summary>
-    /// Helper method to validate pipe orientation using PaintingPixelComponents
-    /// </summary>
-    /// <param name="startPixelComponent">Start pixel component</param>
-    /// <param name="endPixelComponent">End pixel component</param>
-    /// <returns>True if pipe orientation is valid, false otherwise</returns>
-    //private bool IsValidPipeOrientation(PaintingPixelComponent startPixelComponent, PaintingPixelComponent endPixelComponent)
-    //{
-    //    if (startPixelComponent == null || endPixelComponent == null)
-    //        return false;
-
-    //    PaintingPixel startPixel = startPixelComponent.PixelData;
-    //    PaintingPixel endPixel = endPixelComponent.PixelData;
-
-    //    if (startPixel == null || endPixel == null)
-    //        return false;
-
-    //    return (startPixel.row == endPixel.row) || (startPixel.column == endPixel.column);
-    //}
-
-    /// <summary>
-    /// Import all pipe configurations from this setup to a PaintingConfig asset
+    /// Import all wall configurations from this setup to a PaintingConfig asset
     /// </summary>
     /// <param name="paintingConfig">The PaintingConfig to import to</param>
-    public void ImportPipesToPaintingConfig(PaintingConfig paintingConfig)
+    public void ImportWallsToPaintingConfig(PaintingConfig paintingConfig)
     {
         if (paintingConfig == null)
         {
-            Debug.LogError("PaintingConfig is null. Cannot import pipes.");
+            Debug.LogError("PaintingConfig is null. Cannot import walls.");
             return;
         }
 
-        // Clear existing pipe setups in the config
+        // Clear existing wall setups in the config
         if (paintingConfig.WallSetups == null)
             paintingConfig.WallSetups = new List<WallObjectSetup>();
         else
             paintingConfig.WallSetups.Clear();
 
-        // Copy all pipe setups from this component to the config
-        foreach (WallObjectSetup pipeSetup in wallObjectSetups)
+        // Copy all wall setups from this component to the config
+        foreach (WallObjectSetup wallSetup in wallObjectSetups)
         {
-            if (pipeSetup != null)
+            if (wallSetup != null)
             {
-                // Add the pipe setup to the painting config
-                paintingConfig.WallSetups.Add(pipeSetup);
+                // Add the wall setup to the painting config
+                paintingConfig.WallSetups.Add(wallSetup);
             }
         }
 
         paintingConfig.HidePixelsUnderPipes();
 
-        Debug.Log($"Imported {wallObjectSetups.Count} pipe setups to PaintingConfig.");
-    }
-
-    /// <summary>
-    /// Apply all pipe configurations from a PaintingConfig asset to this setup
-    /// </summary>
-    /// <param name="paintingConfig">The PaintingConfig to import from</param>
-    public void ApplyPaintingConfigPipes(PaintingConfig paintingConfig)
-    {
-        if (paintingConfig == null)
-        {
-            Debug.LogError("PaintingConfig is null. Cannot apply pipes.");
-            return;
-        }
-
-        // Clear existing pipe setups in this component
-        wallObjectSetups.Clear();
-
-        // Copy all pipe setups from the config to this component
-        if (paintingConfig.WallSetups != null)
-        {
-            foreach (WallObjectSetup pipeSetup in paintingConfig.WallSetups)
-            {
-                if (pipeSetup != null)
-                {
-                    wallObjectSetups.Add(pipeSetup);
-                }
-            }
-        }
-        int tmp = paintingConfig.PipeSetups != null ? paintingConfig.PipeSetups.Count : 0;
-        Debug.Log($"Applied {tmp} pipe setups from PaintingConfig.");
+        Debug.Log($"Imported {wallObjectSetups.Count} wall setups to PaintingConfig.");
     }
 
     public void Reload()
     {
+        gridObject.ClearAllWalls();
         CurrentLevelWallObjectSetups = gridObject.paintingConfig.WallSetups;
         wallObjectSetups = new List<WallObjectSetup>(CurrentLevelWallObjectSetups);
         //return;
-        foreach (var pipe in CurrentLevelWallObjectSetups)
+        foreach (var wall in CurrentLevelWallObjectSetups)
         {
-            gridObject.CreateWallObject(pipe);
+            gridObject.CreateWallObject(wall);
         }
     }
 }
