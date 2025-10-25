@@ -96,10 +96,13 @@ public class PipeObjectConfigSetupEditor : Editor
         // Button to import pipe setups to PaintingConfig
         if (GUILayout.Button("SAVE"))
         {
-            if (pipeConfigSetup.gridObject == null || pipeConfigSetup.gridObject.paintingConfig == null)
+            if (EditorUtility.DisplayDialog("Confirm", "Save to config?", "Yes", "No"))
             {
-                EditorUtility.DisplayDialog("Error", "GridObject or PaintingConfig reference is missing.", "OK");
-                return;
+                if (pipeConfigSetup.gridObject == null || pipeConfigSetup.gridObject.paintingConfig == null)
+                {
+                    EditorUtility.DisplayDialog("Error", "GridObject or PaintingConfig reference is missing.", "OK");
+                    return;
+                }
             }
 
             pipeConfigSetup.ImportPipesToPaintingConfig(pipeConfigSetup.gridObject.paintingConfig);

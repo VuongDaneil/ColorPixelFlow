@@ -4731,3 +4731,9 @@ MonoBehaviour:
       color: {r: 0.99088925, g: 0.8399757, b: 0.64028114, a: 1}
       colorCode: Orange5
       Hidden: 0
+  - PixelCovered:
+    - column: -14
+      row: 8
+      color: {r: 0.12922418, g: 0.67297, b: 0.26280472, a: 1}
+      colorCode: Green2
+      Hidden: 0

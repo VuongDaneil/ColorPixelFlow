@@ -29,30 +29,30 @@ public class KeyObjectConfigSetup : MonoBehaviour
     /// <summary>
     /// Add a pipe setup to the list
     /// </summary>
-    /// <param name="wallSetup">The pipe setup to add</param>
-    public void AddKeySetup(KeyObjectSetup wallSetup)
+    /// <param name="keySetup">The pipe setup to add</param>
+    public void AddKeySetup(KeyObjectSetup keySetup)
     {
         if (keyObjectSetups == null) keyObjectSetups = new List<KeyObjectSetup>();
-        if (wallSetup != null && !keyObjectSetups.Contains(wallSetup))
+        if (keySetup != null && !keyObjectSetups.Contains(keySetup))
         {
-            keyObjectSetups.Add(wallSetup);
+            keyObjectSetups.Add(keySetup);
         }
     }
 
     /// <summary>
     /// Remove a pipe setup from the list
     /// </summary>
-    /// <param name="wallSetup">The wall setup to remove</param>
-    public void RemoveKeySetup(KeyObjectSetup wallSetup)
+    /// <param name="keySetup">The key setup to remove</param>
+    public void RemoveKeySetup(KeyObjectSetup keySetup)
     {
-        if (wallSetup != null)
+        if (keySetup != null)
         {
-            keyObjectSetups.Remove(wallSetup);
+            keyObjectSetups.Remove(keySetup);
         }
     }
 
     /// <summary>
-    /// Clear all wall setups
+    /// Clear all key setups
     /// </summary>
     public void ClearKeySetups()
     {
@@ -60,30 +60,30 @@ public class KeyObjectConfigSetup : MonoBehaviour
     }
 
     /// <summary>
-    /// Create a wall between StartPixel and EndPixel based on current settings
+    /// Create a key between StartPixel and EndPixel based on current settings
     /// </summary>
     public void CreateKey()
     {
-        if (KeyPixelComponents == null || KeyPixelComponents.Count <= 1)
+        if (KeyPixelComponents == null || KeyPixelComponents.Count <= 0)
         {
-            Debug.LogWarning("WallPixelComponents is not valid. Cannot create wall.");
+            Debug.LogWarning("KeyPixelComponents is not valid. Cannot create key.");
             return;
         }
 
-        // Validate that the wall should be straight (horizontal or vertical)
-        if (!IsValidWallOrientation(KeyPixelComponents))
+        // Validate that the key should be straight (horizontal or vertical)
+        if (!IsValidKeyOrientation(KeyPixelComponents))
         {
-            Debug.LogWarning("Wall must be either horizontal (same row) or vertical (same column). Cannot create wall.");
+            Debug.LogWarning("Key must be either horizontal (same row) or vertical (same column). Cannot create key.");
             return;
         }
 
-        // Create and setup the wall in the scene - this will also create the wall pixels
-        List<PaintingPixelConfig> wallPixelConfigs = new List<PaintingPixelConfig>();
+        // Create and setup the key in the scene - this will also create the key pixels
+        List<PaintingPixelConfig> keyPixelConfigs = new List<PaintingPixelConfig>();
         foreach (var pixelComponent in KeyPixelComponents)
         {
-            wallPixelConfigs.Add(new PaintingPixelConfig(pixelComponent.PixelData));
+            keyPixelConfigs.Add(new PaintingPixelConfig(pixelComponent.PixelData));
         }
-        KeyObjectSetup keySetup = new KeyObjectSetup(wallPixelConfigs);
+        KeyObjectSetup keySetup = new KeyObjectSetup(keyPixelConfigs);
 
         var newKeyObject = SetupNewKeyInScene(keySetup);
 
@@ -96,12 +96,12 @@ public class KeyObjectConfigSetup : MonoBehaviour
 
 
     /// <summary>
-    /// Set up the actual wall object in the scene
+    /// Set up the actual key object in the scene
     /// </summary>
     /// <param name="startPixel">Start pixel (head)</param>
     /// <param name="endPixel">End pixel (tail)</param>
-    /// <param name="colorCode">Color code for the wall</param>
-    /// <returns>Tuple with the created PipeObject component and list of new wall pixels</returns>
+    /// <param name="colorCode">Color code for the key</param>
+    /// <returns>Tuple with the created PipeObject component and list of new key pixels</returns>
     private KeyObject SetupNewKeyInScene(KeyObjectSetup setup)
     {
         KeyObject keyObject = gridObject.CreateKeyObject(setup);
@@ -115,24 +115,26 @@ public class KeyObjectConfigSetup : MonoBehaviour
     /// <param name="startPixel">Start pixel (head)</param>
     /// <param name="endPixel">End pixel (tail)</param>
     /// <returns>True if pipe orientation is valid, false otherwise</returns>
-    private bool IsValidWallOrientation(List<PaintingPixelComponent> _wallPixels)
+    private bool IsValidKeyOrientation(List<PaintingPixelComponent> _keyPixels)
     {
-        if (_wallPixels == null || _wallPixels.Count == 0)
+        if (_keyPixels == null || _keyPixels.Count == 0)
             return false;
 
-        int minRow = _wallPixels.Min(p => p.PixelData.row);
-        int maxRow = _wallPixels.Max(p => p.PixelData.row);
-        int minCol = _wallPixels.Min(p => p.PixelData.column);
-        int maxCol = _wallPixels.Max(p => p.PixelData.column);
+        if (_keyPixels.Count == 1) return true; // A single pixel is always valid
+
+        int minRow = _keyPixels.Min(p => p.PixelData.row);
+        int maxRow = _keyPixels.Max(p => p.PixelData.row);
+        int minCol = _keyPixels.Min(p => p.PixelData.column);
+        int maxCol = _keyPixels.Max(p => p.PixelData.column);
 
         int width = maxCol - minCol + 1;
         int height = maxRow - minRow + 1;
         int expectedCount = width * height;
 
-        if (_wallPixels.Count != expectedCount)
+        if (_keyPixels.Count != expectedCount)
             return false;
 
-        HashSet<(int, int)> pointSet = _wallPixels
+        HashSet<(int, int)> pointSet = _keyPixels
             .Select(p => (p.PixelData.row, p.PixelData.column))
             .ToHashSet();
 

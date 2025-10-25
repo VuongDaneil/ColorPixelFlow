@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using DG.Tweening;
 using NaughtyAttributes;
+using TMPro;
 using UnityEngine;
 
 public class WallObject : MonoBehaviour
@@ -10,9 +11,12 @@ public class WallObject : MonoBehaviour
     public Transform WallTransform;                    // Head transform
     public List<PaintingPixel> PaintingPixelsCovered;
     public int CurrentHeart = 0;
+    public string ColorCode;
 
     [Header("VISUAL")]
     public Renderer WallRenderer;
+
+    public bool Destroyed = false;
 
     private void Awake()
     {
@@ -25,8 +29,9 @@ public class WallObject : MonoBehaviour
     /// <param name="head">The head transform</param>
     /// <param name="bodyParts">List of body parts transforms (including tail), ordered from head to tail</param>
     /// <param name="isHorizontal">True if the pipe is horizontal (in same row), false if vertical (in same column)</param>
-    public void Initialize(List<PaintingPixel> pipePixels, int heart, Color color)
+    public void Initialize(List<PaintingPixel> pipePixels, int heart, Color color, string colorCode)
     {
+        Destroyed = false;
         WallTransform = transform;
         PaintingPixelsCovered = pipePixels != null ? pipePixels : new List<PaintingPixel>();
         if (heart > 0) CurrentHeart = heart;
@@ -37,11 +42,13 @@ public class WallObject : MonoBehaviour
                 CurrentHeart += pixel.Hearts;
             }
         }
+        ColorCode = colorCode;
         ChangeColor(color);
     }
 
     public void OnAPixelDestroyed()
     {
+        if (Destroyed) return;
         CurrentHeart--;
         CurrentHeart = Mathf.Clamp(CurrentHeart, 0, int.MaxValue);
 
@@ -52,6 +59,7 @@ public class WallObject : MonoBehaviour
                 pixel.DestroyPixel(invokeEvent: false);
             }
             gameObject.SetActive(false);
+            Destroyed = true;
             return;
         }
 

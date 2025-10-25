@@ -14,7 +14,10 @@ public class PipeObject : MonoBehaviour
     Transform parentTransform;
     
     [Header("Pipe Properties")]
+    public string ColorCode;                      // Color code defining the pipe's color
     public bool IsHorizontal;                     // True if pipe is horizontal (in same row), false if vertical (in same column)
+
+    public bool Destroyed = false;
 
     private void Awake()
     {
@@ -28,13 +31,15 @@ public class PipeObject : MonoBehaviour
     /// <param name="head">The head transform</param>
     /// <param name="bodyParts">List of body parts transforms (including tail), ordered from head to tail</param>
     /// <param name="isHorizontal">True if the pipe is horizontal (in same row), false if vertical (in same column)</param>
-    public void Initialize(Transform head, List<Transform> bodyParts, List<PaintingPixel> pipePixels, bool isHorizontal = false)
+    public void Initialize(Transform head, List<Transform> bodyParts, List<PaintingPixel> pipePixels, string colorCode, bool isHorizontal = false)
     {
+        Destroyed = false;
         PipeHead = head;
         PipeBodyParts = bodyParts != null ? new List<Transform>(bodyParts) : new List<Transform>();
         PaintingPixelsCovered = pipePixels != null ? pipePixels : new List<PaintingPixel>();
         IsHorizontal = isHorizontal;
         parentTransform = transform.parent;
+        ColorCode = colorCode;
     }
 
     /// <summary>
@@ -114,7 +119,7 @@ public class PipeObject : MonoBehaviour
 
     public void OnAPixelDestroyed()
     {
-        if (pixelDestroyed >= PaintingPixelsCovered.Count) return; 
+        if (Destroyed) return; 
         PaintingPixelsCovered[^(1 + pixelDestroyed)].DestroyPixel(false);
         for (int i = 0; i < PaintingPixelsCovered.Count - pixelDestroyed; i++)
         {
@@ -122,6 +127,7 @@ public class PipeObject : MonoBehaviour
         }
 
         pixelDestroyed++;
+        if (pixelDestroyed >= PaintingPixelsCovered.Count) Destroyed = true;
         HandlePipeShortening();
     }
 

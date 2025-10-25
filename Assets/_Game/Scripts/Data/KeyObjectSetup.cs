@@ -10,12 +10,12 @@ public class KeyObjectSetup
     public KeyObjectSetup()
     {
         PixelCovered = new List<PaintingPixelConfig>();
-        ColorCode = "KeyColor";
+        ColorCode = PaintingSharedAttributes.KeyColorDefine;
     }
 
     public KeyObjectSetup(List<PaintingPixelConfig> pixelCovered)
     {
         this.PixelCovered = pixelCovered != null ? new List<PaintingPixelConfig>(pixelCovered) : new List<PaintingPixelConfig>();
-        this.ColorCode = "KeyColor";
+        this.ColorCode = PaintingSharedAttributes.KeyColorDefine;
     }
 }

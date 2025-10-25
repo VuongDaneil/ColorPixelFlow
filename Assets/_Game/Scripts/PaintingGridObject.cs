@@ -271,7 +271,7 @@ public class PaintingGridObject : MonoBehaviour
         {
             return outlinePixels;
         }
-        var rs = outlinePixels.FindAll(x => x.colorCode == colorCode).ToList();
+        var rs = outlinePixels.FindAll(x => (x.colorCode == colorCode || x.colorCode.Equals(PaintingSharedAttributes.KeyColorDefine))).ToList();
         return rs;
     }
     #endregion
@@ -519,9 +519,9 @@ public class PaintingGridObject : MonoBehaviour
     {
         if (_pixel == null) return;
 
-        // Check if it inside a pipe
         foreach (PipeObject pipe in pipeObjects)
         {
+            if (pipe.Destroyed || _pixel.colorCode != pipe.ColorCode) continue;
             if (pipe.PaintingPixelsCovered.Contains(_pixel))
             {
                 pipe.OnAPixelDestroyed();
@@ -531,9 +531,20 @@ public class PaintingGridObject : MonoBehaviour
 
         foreach (WallObject wall in wallObjects)
         {
+            if (wall.Destroyed || _pixel.colorCode != wall.ColorCode) continue;
             if (wall.PaintingPixelsCovered.Contains(_pixel))
             {
                 wall.OnAPixelDestroyed();
+                return;
+            }
+        }
+
+        foreach (KeyObject key in keyObjects)
+        {
+            if (key.Collected || _pixel.colorCode != PaintingSharedAttributes.KeyColorDefine) continue;
+            if (key.PaintingPixelsCovered.Contains(_pixel))
+            {
+                key.OnAPixelDestroyed();
                 return;
             }
         }
@@ -697,7 +708,7 @@ public class PaintingGridObject : MonoBehaviour
 
         //foreach (var pipePart in newpipePixels) pipePart.PixelComponent?.ApplyPosition();
 
-        pipeObject.Initialize(headTransform, bodyParts, newpipePixels, isHorizontal);
+        pipeObject.Initialize(headTransform, bodyParts, newpipePixels, pipeSetup.ColorCode, isHorizontal);
         pipeObject.ApplyOrientationRotation();
         pipeObjects.Add(pipeObject);
         return pipeObject;
@@ -832,44 +843,9 @@ public class PaintingGridObject : MonoBehaviour
             }
         }
 
-        wallObject.Initialize(wallPixels, wallSetup.Hearts, wallColor);
+        wallObject.Initialize(wallPixels, wallSetup.Hearts, wallColor, wallSetup.ColorCode);
         wallObjects.Add(wallObject);
         return wallObject;
-    }
-
-    private Vector3 GetCenterByBoundingBox(List<PaintingPixelComponent> points)
-    {
-        if (points == null || points.Count == 0)
-            return Vector3.zero;
-
-        float minX = points.Min(p => p.PixelData.worldPos.x);
-        float maxX = points.Max(p => p.PixelData.worldPos.x);
-        float minY = points.Min(p => p.PixelData.worldPos.y);
-        float maxY = points.Max(p => p.PixelData.worldPos.y);
-        float minZ = points.Min(p => p.PixelData.worldPos.z);
-        float maxZ = points.Max(p => p.PixelData.worldPos.z);
-
-        // trung tâm bounding box
-        return new Vector3(
-            (minX + maxX) * 0.5f + transform.position.x,
-            (minY + maxY) * 0.5f,
-            (minZ + maxZ) * 0.5f + transform.position.z
-        );
-    }
-    public (int rowCount, int columnCount) GetShapeSize(List<PaintingPixel> pixels)
-    {
-        if (pixels == null || pixels.Count == 0)
-            return (0, 0);
-
-        int minRow = pixels.Min(p => p.row);
-        int maxRow = pixels.Max(p => p.row);
-        int minCol = pixels.Min(p => p.column);
-        int maxCol = pixels.Max(p => p.column);
-
-        int rowCount = maxRow - minRow + 1;
-        int columnCount = maxCol - minCol + 1;
-
-        return (rowCount, columnCount);
     }
 
     public void ClearAllWalls()
@@ -931,7 +907,7 @@ public class PaintingGridObject : MonoBehaviour
 
     public KeyObject CreateKeyObject(KeyObjectSetup keySetup)
     {
-        if (keySetup.PixelCovered == null || keySetup.PixelCovered.Count <= 1)
+        if (keySetup.PixelCovered == null || keySetup.PixelCovered.Count <= 0)
         {
             Debug.LogWarning("Cannot create wall.");
             return null;
@@ -1022,7 +998,44 @@ public class PaintingGridObject : MonoBehaviour
     #endregion
 
     #region SUPPORTIVE
+    private Vector3 GetCenterByBoundingBox(List<PaintingPixelComponent> points)
+    {
+        if (points == null || points.Count == 0)
+            return Vector3.zero;
 
+        if (points.Count == 1) return points[0].PixelData.worldPos;
+
+        float minX = points.Min(p => p.PixelData.worldPos.x);
+        float maxX = points.Max(p => p.PixelData.worldPos.x);
+        float minY = points.Min(p => p.PixelData.worldPos.y);
+        float maxY = points.Max(p => p.PixelData.worldPos.y);
+        float minZ = points.Min(p => p.PixelData.worldPos.z);
+        float maxZ = points.Max(p => p.PixelData.worldPos.z);
+
+        // trung tâm bounding box
+        return new Vector3(
+            (minX + maxX) * 0.5f + transform.position.x,
+            (minY + maxY) * 0.5f,
+            (minZ + maxZ) * 0.5f + transform.position.z
+        );
+    }
+    public (int rowCount, int columnCount) GetShapeSize(List<PaintingPixel> pixels)
+    {
+        if (pixels == null || pixels.Count == 0)
+            return (0, 0);
+
+        if (pixels.Count == 1) return (1, 1);
+
+        int minRow = pixels.Min(p => p.row);
+        int maxRow = pixels.Max(p => p.row);
+        int minCol = pixels.Min(p => p.column);
+        int maxCol = pixels.Max(p => p.column);
+
+        int rowCount = maxRow - minRow + 1;
+        int columnCount = maxCol - minCol + 1;
+
+        return (rowCount, columnCount);
+    }
     public PaintingPixel GetPixelAtGridPosition(int column, int row)
     {
         foreach (PaintingPixel pixel in paintingPixels)
