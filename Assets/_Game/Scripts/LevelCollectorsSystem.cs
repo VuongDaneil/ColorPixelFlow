@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
+using Unity.VisualScripting.FullSerializer;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Experimental.Playables;
 
 public class LevelCollectorsSystem : MonoBehaviour
 {
@@ -20,7 +22,7 @@ public class LevelCollectorsSystem : MonoBehaviour
     public Vector3 CollectorRotation = Vector3.zero; // Rotation to apply to spawned collectors
 
     [Header("Runtime Data")]
-    public List<ColorPixelsCollector> CurrentCollectors; // Spawned collectors in current config
+    public List<ColorPixelsCollectorObject> CurrentCollectors; // Spawned collectors in current config
     public List<CollectorColumn> CollectorColumns; // List of columns created
 
     private void Start()
@@ -45,14 +47,14 @@ public class LevelCollectorsSystem : MonoBehaviour
             return;
         }
 
-        if (CurrentLevelCollectorsConfig.CollectorSetups == null || CurrentLevelCollectorsConfig.CollectorSetups.Count == 0)
+        if (CurrentLevelCollectorsConfig.CollectorColumns == null || CurrentLevelCollectorsConfig.CollectorColumns.Count == 0)
         {
             Debug.LogWarning("No collector setups found in the config!");
             return;
         }
 
-        int totalCollectors = CurrentLevelCollectorsConfig.CollectorSetups.Count;
-        int numberOfColumns = CurrentLevelCollectorsConfig.NumberOfColumns;
+        int numberOfColumns = CurrentLevelCollectorsConfig.NumberOfColumns();
+        int totalCollectors = CurrentLevelCollectorsConfig.NumberOfCollectors();
 
         if (numberOfColumns <= 0)
         {
@@ -61,88 +63,14 @@ public class LevelCollectorsSystem : MonoBehaviour
         }
 
         // Initialize lists
-        CurrentCollectors = new List<ColorPixelsCollector>();
+        CurrentCollectors = new List<ColorPixelsCollectorObject>();
         CollectorColumns = new List<CollectorColumn>();
 
-        // Calculate rows needed based on number of collectors and columns
-        int numberOfRows = Mathf.CeilToInt((float)totalCollectors / numberOfColumns);
-
         // Create collectors in row-major order (filling horizontally first)
-        for (int i = 0; i < totalCollectors; i++)
-        {
-            SingleColorCollectorObject config = CurrentLevelCollectorsConfig.CollectorSetups[i];
 
-            // Calculate position based on row-major order
-            int row = i / numberOfColumns; // Row index
-            int col = i % numberOfColumns; // Column index
-
-            // Calculate the position relative to the formation center (which is the highest point)
-            // Use the formation center's transform to properly orient the formation
-            Vector3 spawnPosition = FormationCenter.position;
-            
-            // Apply horizontal offset (perpendicular to forward direction) based on column
-            spawnPosition += FormationCenter.right * (col - (numberOfColumns - 1) / 2.0f) * SpaceBetweenColumns;
-            
-            // Apply depth offset (opposite to forward direction) based on row
-            spawnPosition -= FormationCenter.forward * row * SpaceBetweenCollectors;
-
-            // Spawn the collector with specified rotation
-            GameObject collectorObj = Instantiate(CollectorPrefab, spawnPosition, Quaternion.identity, CollectorContainer);
-            collectorObj.transform.localEulerAngles = CollectorRotation;
-            ColorPixelsCollector collector = collectorObj.GetComponent<ColorPixelsCollector>();
-
-            if (collector != null)
-            {
-                // Assign the configuration data to the collector
-                collector.OriginalIndex = config.OriginalIndex;
-                
-                // Find color from palette based on ColorCode
-                if (ColorPalette != null && ColorPalette.colorPallete.ContainsKey(config.ColorCode))
-                {
-                    // Set the collector's color and shooting color
-                    collector.CollectorColor = config.ColorCode;
-                    collector.VisualHandler.SetColor(config.ColorCode);
-                }
-                
-                // Apply bullet settings
-                collector.BulletCapacity = config.Bullets;
-                collector.BulletLeft = config.Bullets;
-                collector.ConnectedCollectorsIndex = new List<int>(config.ConnectedCollectorsIndex);
-                collector.IsLocked = config.Locked;
-                collector.IsHidden = config.Hidden;
-
-                // Set locked state (this might be handled by deactivating the collector)
-                if (false) collector.SetCollectorActive(!config.Locked);
-                
-                // Add to our lists
-                CurrentCollectors.Add(collector);
-            }
-        }
-
-        // Organize collectors into columns as specified in the design
-        OrganizeCollectorsIntoColumns(totalCollectors, numberOfColumns);
+        SetUpAndArrangePosition(numberOfColumns);
 
         SetupConnectedCollectors();
-    }
-
-    private void OrganizeCollectorsIntoColumns(int totalCollectors, int numberOfColumns)
-    {
-        // Create column containers
-        for (int colIdx = 0; colIdx < numberOfColumns; colIdx++)
-        {
-            CollectorColumn column = new CollectorColumn();
-            CollectorColumns.Add(column);
-
-            // Add collectors to this column (every nth collector where n is the number of columns)
-            // In row-major order, collectors in the same column are at indices: colIdx, colIdx+numberOfColumns, colIdx+2*numberOfColumns, etc.
-            for (int idx = colIdx; idx < totalCollectors; idx += numberOfColumns)
-            {
-                if (idx < CurrentCollectors.Count)
-                {
-                    column.CollectorsInColumn.Add(CurrentCollectors[idx]);
-                }
-            }
-        }
     }
 
     public void ClearExistingCollectors()
@@ -200,10 +128,156 @@ public class LevelCollectorsSystem : MonoBehaviour
         {
             for (int i = 0; i < CurrentCollectors.Count; i++)
             {
+                if (CurrentCollectors[i] == null) continue;
                 Vector3 labelPos = CurrentCollectors[i].transform.position + CurrentCollectors[i].transform.up * 1.5f;
                 Handles.Label(labelPos, i.ToString() + $"({CurrentCollectors[i].BulletCapacity})", style);
             }
         }
     }
 #endif
+
+    #region SUPPORTIVE
+    
+    #region _tool modules
+    public void RemoveCollector(ColorPixelsCollectorObject target)
+    {
+        CurrentCollectors.Remove(target);
+        foreach (var colObjects in CollectorColumns)
+        {
+            if (colObjects.CollectorsInColumn.Contains(target))
+            {
+                colObjects.CollectorsInColumn.Remove(target);
+                break;
+            }
+        }
+        DestroyImmediate(target.gameObject);
+        ReArrangePosition();
+        SetupConnectedCollectors();
+    }
+
+    public void SetUpAndArrangePosition(int collumnCount)
+    {
+        CollectorColumns = new List<CollectorColumn>();
+        int col = 0;
+        foreach (ColumnOfCollectorConfig colConfig in CurrentLevelCollectorsConfig.CollectorColumns)
+        {
+            int row = 0;
+            var collectors = colConfig.Collectors;
+            CollectorColumn colObjects = new CollectorColumn();
+            for (int i = 0; i < collectors.Count; i++)
+            {
+                SingleColorCollectorConfig config = collectors[i];
+
+                // Calculate the position relative to the formation center (which is the highest point)
+                // Use the formation center's transform to properly orient the formation
+                Vector3 spawnPosition = FormationCenter.position;
+
+                // Apply horizontal offset (perpendicular to forward direction) based on column
+                spawnPosition += FormationCenter.right * (col - (collumnCount - 1) / 2.0f) * SpaceBetweenColumns;
+
+                // Apply depth offset (opposite to forward direction) based on row
+                spawnPosition -= FormationCenter.forward * row * SpaceBetweenCollectors;
+
+                // Spawn the collector with specified rotation
+                GameObject collectorObj = Instantiate(CollectorPrefab, spawnPosition, Quaternion.identity, CollectorContainer);
+                collectorObj.transform.localEulerAngles = CollectorRotation;
+                ColorPixelsCollectorObject collector = collectorObj.GetComponent<ColorPixelsCollectorObject>();
+
+                if (collector != null)
+                {
+                    // Find color from palette based on ColorCode
+                    if (ColorPalette != null && ColorPalette.colorPallete.ContainsKey(config.ColorCode))
+                    {
+                        // Set the collector's color and shooting color
+                        collector.CollectorColor = config.ColorCode;
+                        collector.VisualHandler.SetColor(config.ColorCode);
+                    }
+
+                    // Apply bullet settings
+                    collector.BulletCapacity = config.Bullets;
+                    collector.BulletLeft = config.Bullets;
+                    collector.ConnectedCollectorsIndex = new List<int>(config.ConnectedCollectorsIndex);
+                    collector.IsLocked = config.Locked;
+                    collector.IsHidden = config.Hidden;
+
+                    // Set locked state (this might be handled by deactivating the collector)
+                    if (false) collector.SetCollectorActive(!config.Locked);
+
+                    // Add to our lists
+                    colObjects.CollectorsInColumn.Add(collector);
+                    CurrentCollectors.Add(collector);
+                }
+
+                row++;
+            }
+
+            col++;
+            CollectorColumns.Add(colObjects);
+        }
+    }
+
+    public ColorPixelsCollectorObject CloneNewFromCollector(ColorPixelsCollectorObject original)
+    {
+        // Spawn the collector with specified rotation
+        GameObject collectorObj = Instantiate(CollectorPrefab, Vector3.zero, Quaternion.identity, CollectorContainer);
+        collectorObj.transform.localEulerAngles = CollectorRotation;
+        ColorPixelsCollectorObject collector = collectorObj.GetComponent<ColorPixelsCollectorObject>();
+
+        if (collector != null)
+        {
+            // Find color from palette based on ColorCode
+            if (ColorPalette != null && ColorPalette.colorPallete.ContainsKey(original.CollectorColor))
+            {
+                // Set the collector's color and shooting color
+                collector.CollectorColor = original.CollectorColor;
+                collector.VisualHandler.SetColor(original.CollectorColor);
+            }
+
+            // Apply bullet settings
+            collector.BulletCapacity = original.BulletCapacity;
+            collector.BulletLeft = original.BulletCapacity;
+            collector.ConnectedCollectorsIndex = new List<int>(original.ConnectedCollectorsIndex);
+            collector.IsLocked = original.IsLocked;
+            collector.IsHidden = original.IsHidden;
+
+            // Set locked state (this might be handled by deactivating the collector)
+            if (false) collector.SetCollectorActive(!original.IsLocked);
+
+            CurrentCollectors.Add(collector);
+        }
+
+        return collector;
+    }
+
+    public void ReArrangePosition()
+    {
+        int col = 0;
+        foreach (CollectorColumn column in CollectorColumns)
+        {
+            int row = 0;
+            int columnCount = CollectorColumns.Count;
+            var collectors = column.CollectorsInColumn;
+            for (int i = 0; i < collectors.Count; i++)
+            {
+                // Calculate the position relative to the formation center (which is the highest point)
+                // Use the formation center's transform to properly orient the formation
+                Vector3 spawnPosition = FormationCenter.position;
+
+                // Apply horizontal offset (perpendicular to forward direction) based on column
+                spawnPosition += (col - (columnCount - 1) / 2.0f) * SpaceBetweenColumns * FormationCenter.right;
+
+                // Apply depth offset (opposite to forward direction) based on row
+                spawnPosition -= row * SpaceBetweenCollectors * FormationCenter.forward;
+
+                // Spawn the collector with specified rotation
+                collectors[i].transform.position = spawnPosition;
+                collectors[i].transform.localEulerAngles = CollectorRotation;
+                row++;
+            }
+            col++;
+        }
+    }
+    #endregion
+
+    #endregion
 }

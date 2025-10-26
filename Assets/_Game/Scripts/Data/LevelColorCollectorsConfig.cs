@@ -6,8 +6,42 @@ using UnityEngine;
 public class LevelColorCollectorsConfig : ScriptableObject
 {
     [Header("Collector Squad Configuration")]
-    public List<SingleColorCollectorObject> CollectorSetups; // list of SingleColorCollectorObject in a level
+    public List<ColumnOfCollectorConfig> CollectorColumns; // list of SingleColorCollectorObject in a level
 
-    [Header("Formation Settings")]
-    public int NumberOfColumns; // this squad's number of column
+    public int NumberOfColumns()
+    {
+        return CollectorColumns.Count;
+    }
+
+    public int NumberOfCollectors()
+    {
+        int num = 0;
+        foreach (var col in CollectorColumns)
+        {
+            num += col.Collectors.Count;
+        }
+        return num;
+    }
+
+    public List<SingleColorCollectorConfig> GetAllCollectorConfigs()
+    {
+        List<SingleColorCollectorConfig> rs = new List<SingleColorCollectorConfig>();
+        foreach (var col in CollectorColumns)
+        {
+            rs.AddRange(col.Collectors);
+        }
+
+        return rs;
+    }
+}
+
+[Serializable]
+public class ColumnOfCollectorConfig
+{
+    public List<SingleColorCollectorConfig> Collectors;
+
+    public ColumnOfCollectorConfig()
+    {
+        Collectors = new List<SingleColorCollectorConfig>();
+    }
 }

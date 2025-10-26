@@ -5,10 +5,10 @@ using UnityEngine;
 [Serializable]
 public class CollectorColumn
 {
-    public List<ColorPixelsCollector> CollectorsInColumn;
+    public List<ColorPixelsCollectorObject> CollectorsInColumn;
     
     public CollectorColumn()
     {
-        CollectorsInColumn = new List<ColorPixelsCollector>();
+        CollectorsInColumn = new List<ColorPixelsCollectorObject>();
     }
 }

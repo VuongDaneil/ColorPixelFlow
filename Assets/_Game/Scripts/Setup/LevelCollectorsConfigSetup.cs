@@ -1,9 +1,8 @@
+using static PaintingSharedAttributes;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using UnityEngine;
 using System.Linq;
-using NaughtyAttributes;
-
-
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -38,45 +37,13 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
     public float CollisionRadius;
     [ShowIf("ToolActive")] public List<Vector3> OriginalCollectorPosition = new List<Vector3>();
 
-    public void GenerateDefaultConfig()
-    {
-        if (configAsset == null)
-        {
-            Debug.LogError("Please assign a LevelColorCollectorsConfig asset to set up!");
-            return;
-        }
+    [Header("TOOL MODULE(s)")]
+    public MoveCollector MoveModule;
+    public SwapCollectors SwapModule;
+    public SplitCollector SplitModule;
+    public CombinesCollector CombineModule;
 
-        // Initialize the collector setups list
-        if (configAsset.CollectorSetups == null)
-        {
-            configAsset.CollectorSetups = new List<SingleColorCollectorObject>();
-        }
-        
-        configAsset.CollectorSetups.Clear();
-        configAsset.NumberOfColumns = numberOfColumns;
-
-        // Create collector objects based on parameters
-        for (int i = 0; i < numberOfCollectors; i++)
-        {
-            SingleColorCollectorObject collector = new SingleColorCollectorObject
-            {
-                OriginalIndex = i,
-                ColorCode = baseColorCode,
-                Bullets = bulletsPerCollector,
-                Locked = defaultLocked,
-                Hidden = defaultHidden,
-                ConnectedCollectorsIndex = new List<int>() // Empty by default
-            };
-
-            configAsset.CollectorSetups.Add(collector);
-        }
-
-        EnsureBidirectionalConnections();
-
-        Debug.Log($"Generated {numberOfCollectors} collector setups in {numberOfColumns} columns for {configAsset.name}");
-    }
-    
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
     public LevelColorCollectorsConfig CreateConfigAsset(string configName, string path = "Assets/Resources/")
     {
         if (string.IsNullOrEmpty(configName))
@@ -106,7 +73,7 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         Debug.Log($"Created new LevelColorCollectorsConfig asset at {assetPath}");
         return newConfig;
     }
-    #endif
+#endif
 
     public void LoadConfigAsset(LevelColorCollectorsConfig sourceConfig)
     {
@@ -118,15 +85,19 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
 
         configAsset = sourceConfig;
         Debug.Log($"Loaded config asset: {configAsset.name}");
-        
+
         // Preview the loaded config if preview system is available
         if (previewSystem != null)
         {
             previewSystem.CurrentLevelCollectorsConfig = configAsset;
             previewSystem.SetupCollectors();
         }
+
+#if UNITY_EDITOR
+        BakeCollectorsPositionInTool();
+#endif
     }
-    
+
     // Import from a LevelCollectorsSystem's CurrentCollectors (runtime data)
     public void ImportCollectorsFromScene()
     {
@@ -143,53 +114,62 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         }
 
         // Clear the target config's existing setups
-        configAsset.CollectorSetups.Clear();
-        
+        configAsset.CollectorColumns.Clear();
+
         // Import collector data from the system's current collectors
-        for (int i = 0; i < previewSystem.CurrentCollectors.Count; i++)
+        foreach (CollectorColumn col in previewSystem.CollectorColumns)
         {
-            ColorPixelsCollector collector = previewSystem.CurrentCollectors[i];
-            
-            SingleColorCollectorObject newCollector = new SingleColorCollectorObject
+            ColumnOfCollectorConfig newColumn = new ColumnOfCollectorConfig();
+            foreach (ColorPixelsCollectorObject collector in col.CollectorsInColumn)
             {
-                OriginalIndex = collector.OriginalIndex,
-                ColorCode = collector.CollectorColor, // Use the color code the collector can destroy
-                Bullets = collector.BulletLeft, // Use remaining bullets
-                Locked = collector.IsLocked,
-                Hidden = collector.IsHidden, // Default to not hidden
-                ConnectedCollectorsIndex = new List<int>(collector.ConnectedCollectorsIndex) // Default to no connections
-            };
-            
-            configAsset.CollectorSetups.Add(newCollector);
+                SingleColorCollectorConfig newCollector = new SingleColorCollectorConfig
+                {
+                    ColorCode = collector.CollectorColor, // Use the color code the collector can destroy
+                    Bullets = collector.BulletCapacity, // Use remaining bullets
+                    Locked = collector.IsLocked,
+                    Hidden = collector.IsHidden, // Default to not hidden
+                    ConnectedCollectorsIndex = new List<int>(collector.ConnectedCollectorsIndex) // Default to no connections
+                };
+                newColumn.Collectors.Add(newCollector);
+            }
+            if (newColumn.Collectors.Count > 0) configAsset.CollectorColumns.Add(newColumn);
         }
-        
+
         // Update the number of columns (might need to set this manually or estimate)
         // For now, we'll keep the existing number of columns or default to 1 if not set
-        if (configAsset.NumberOfColumns <= 0) configAsset.NumberOfColumns = 1;
         EnsureBidirectionalConnections();
         Debug.Log($"Imported {previewSystem.CurrentCollectors.Count} collector data from LevelCollectorsSystem to {configAsset.name}");
     }
-    
+
     // Ensure bidirectional connections in the config
     public void EnsureBidirectionalConnections()
     {
-        if (configAsset == null || configAsset.CollectorSetups == null)
+        if (configAsset == null || configAsset.CollectorColumns == null || configAsset.CollectorColumns.Count <= 0)
         {
             Debug.LogError("Config asset or collector setups is null!");
             return;
         }
 
-        // Iterate through each collector in the config
-        for (int i = 0; i < configAsset.CollectorSetups.Count; i++)
+        List<SingleColorCollectorConfig> allCollectorConfig = new List<SingleColorCollectorConfig>();
+
+        foreach (ColumnOfCollectorConfig column in configAsset.CollectorColumns)
         {
-            SingleColorCollectorObject collector = configAsset.CollectorSetups[i];
+            allCollectorConfig.AddRange(column.Collectors);
+        }
+
+        if (allCollectorConfig.Count <= 0) return;
+
+        // Iterate through each collector in the config
+        for (int i = 0; i < allCollectorConfig.Count; i++)
+        {
+            SingleColorCollectorConfig collector = allCollectorConfig[i];
             
             // For each connection in this collector, ensure the reverse connection exists
             foreach (int connectedIndex in collector.ConnectedCollectorsIndex)
             {
-                if (connectedIndex >= 0 && connectedIndex < configAsset.CollectorSetups.Count)
+                if (connectedIndex >= 0 && connectedIndex < allCollectorConfig.Count)
                 {
-                    SingleColorCollectorObject targetCollector = configAsset.CollectorSetups[connectedIndex];
+                    SingleColorCollectorConfig targetCollector = allCollectorConfig[connectedIndex];
                     
                     // If the target collector doesn't have this collector in its connections, add it
                     if (!targetCollector.ConnectedCollectorsIndex.Contains(i))
@@ -205,7 +185,7 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
             }
         }
         
-        Debug.Log($"Ensured bidirectional connections for {configAsset.CollectorSetups.Count} collectors in {configAsset.name}");
+        Debug.Log($"Ensured bidirectional connections for {allCollectorConfig.Count} collectors in {allCollectorConfig}");
     }
     
     // Generate collector configurations from painting config
@@ -224,11 +204,11 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         }
 
         // Clear existing collector setups
-        if (configAsset.CollectorSetups == null)
+        if (configAsset.CollectorColumns == null)
         {
-            configAsset.CollectorSetups = new List<SingleColorCollectorObject>();
+            configAsset.CollectorColumns = new List<ColumnOfCollectorConfig>();
         }
-        configAsset.CollectorSetups.Clear();
+        configAsset.CollectorColumns.Clear();
 
         // Collect all pixels from painting config (PaintingConfig.Pixels) and from pipe setups (PixelCovered)
         List<PaintingPixel> allPixels = new List<PaintingPixel>();
@@ -236,6 +216,7 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         // Add pixels from PaintingConfig.Pixels (convert from PaintingPixelConfig to PaintingPixel)
         foreach (var pixelConfig in paintingConfig.Pixels)
         {
+            if (pixelConfig.Hidden) continue;
             PaintingPixel pixel = new PaintingPixel
             {
                 column = pixelConfig.column,
@@ -253,17 +234,60 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         {
             foreach(var pixel in pipeSetup.PixelCovered)
             {
-                allPixels.Add(new PaintingPixel(pixel));
+                PaintingPixel _new = new PaintingPixel(pixel);
+                if (allPixels.Any(x => (x.column == _new.column && x.row == _new.row)))
+                {
+                    allPixels.Remove(allPixels.First(x => (x.column == _new.column && x.row == _new.row)));
+                }
+                allPixels.Add(_new);
             }
+        }
+
+        // Add pixels from PipeSetups.WallSetups
+        foreach (var wallSetup in paintingConfig.WallSetups)
+        {
+            int pixelCoveredCount = wallSetup.PixelCovered.Count;
+
+            foreach (PaintingPixelConfig _p in wallSetup.PixelCovered)
+            {
+                if (allPixels.Any(x => (x.column == _p.column && x.row == _p.row)))
+                {
+                    allPixels.Remove(allPixels.First(x => (x.column == _p.column && x.row == _p.row)));
+                }
+            }
+
+            for (int i = 0; i < wallSetup.Hearts; i++)
+            {
+                PaintingPixel _new = new PaintingPixel(wallSetup.PixelCovered[i % (pixelCoveredCount - 1)]);
+                _new.colorCode = wallSetup.ColorCode;
+                allPixels.Add(_new);
+            }
+        }
+
+        // Add pixels from PipeSetups.KeySetups
+        foreach (var keySetup in paintingConfig.KeySetups)
+        {
+            int pixelCoveredCount = keySetup.PixelCovered.Count;
+
+            foreach (PaintingPixelConfig _p in keySetup.PixelCovered)
+            {
+                if (allPixels.Any(x => (x.column == _p.column && x.row == _p.row)))
+                {
+                    allPixels.Remove(allPixels.First(x => (x.column == _p.column && x.row == _p.row)));
+                }
+            }
+
+            PaintingPixel _new = new PaintingPixel(keySetup.PixelCovered[Random.Range(0, pixelCoveredCount)]);
+            allPixels.Add(_new);
         }
 
         // Group pixels by outline based on painting size
         List<List<PaintingPixel>> outlines = ExtractOutlinesByDepth(allPixels, paintingConfig.PaintingSize);
 
         // Process each outline to create collectors
-        int originalIndex = 0;
         int outlineCount = outlines.Count;
-        for (int i = outlineCount - 1; i >= 0; i--)
+        List<SingleColorCollectorConfig> allCollectorConfigs = new List<SingleColorCollectorConfig>();
+        for (int i = 0; i < outlineCount; i++)
         {
             var outline = outlines[i];
 
@@ -284,7 +308,7 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
 
             // Create collectors based on color counts
             int colorSetCount = colorCounts.Count;
-            for (int j = colorSetCount - 1; j >= 0; j--)
+            for (int j = 0; j < colorSetCount; j++)
             {
                 var colorCount = colorCounts.ElementAt(j);
                 string colorCode = colorCount.Key;
@@ -297,135 +321,260 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
                 {
                     int bulletsForThisCollector = Mathf.Min(remainingPixels, MaxBulletPerCollector);
                     
-                    SingleColorCollectorObject collector = new SingleColorCollectorObject
+                    SingleColorCollectorConfig collector = new SingleColorCollectorConfig
                     {
-                        OriginalIndex = originalIndex++,
                         ColorCode = colorCode,
                         Bullets = bulletsForThisCollector,
                         Locked = defaultLocked,
                         Hidden = defaultHidden,
                         ConnectedCollectorsIndex = new List<int>() // Empty by default
                     };
-                    
-                    configAsset.CollectorSetups.Add(collector);
+
+                    allCollectorConfigs.Add(collector);
                     
                     remainingPixels -= bulletsForThisCollector;
                 }
             }
         }
 
-        configAsset.NumberOfColumns = numberOfColumns;
+        int collectorCount = allCollectorConfigs.Count;
+        List<ColumnOfCollectorConfig> columnsConfig = new List<ColumnOfCollectorConfig>();
 
-        Debug.Log($"Generated {configAsset.CollectorSetups.Count} collector setups from painting config '{paintingConfig.name}'");
+        for (int colIdx = 0; colIdx < numberOfColumns; colIdx++)
+        {
+            ColumnOfCollectorConfig column = new ColumnOfCollectorConfig();
+            // Add collectors to this column (every nth collector where n is the number of columns)
+            // In row-major order, collectors in the same column are at indices: colIdx, colIdx+numberOfColumns, colIdx+2*numberOfColumns, etc.
+            for (int idx = colIdx; idx < collectorCount; idx += numberOfColumns)
+            {
+                if (idx < allCollectorConfigs.Count)
+                {
+                    column.Collectors.Add(allCollectorConfigs[idx]);
+                }
+            }
+            columnsConfig.Add(column);
+        }
+        configAsset.CollectorColumns = columnsConfig;
+
+        Debug.Log($"Generated {configAsset.CollectorColumns.Count} collector setups from painting config '{paintingConfig.name}'");
     }
     
     // Extract outline pixels from outermost to innermost
     private List<List<PaintingPixel>> ExtractOutlinesByDepth(List<PaintingPixel> allPixels, Vector2 paintingSize)
     {
         List<List<PaintingPixel>> outlines = new List<List<PaintingPixel>>();
-        
-        // Create a copy of pixels to work with
+        if (allPixels == null || allPixels.Count == 0)
+            return outlines;
+
+        // Clone the list to avoid modifying the original
         List<PaintingPixel> workingPixels = new List<PaintingPixel>(allPixels);
-        
-        // Calculate bounds based on painting size
-        int halfWidth = Mathf.RoundToInt(paintingSize.x / 2f);
-        int halfHeight = Mathf.RoundToInt(paintingSize.y / 2f);
-        
-        // We'll extract outlines from the outermost to the innermost
-        int minCol = -halfWidth;
-        int maxCol = halfWidth - 1;
-        int minRow = -halfHeight;
-        int maxRow = halfHeight - 1;
-        
-        while (minCol <= maxCol && minRow <= maxRow)
+
+        // Keep looping while there are still pixels
+        while (workingPixels.Count > 0)
         {
-            // Extract current outline
+            // Determine current bounds (outermost rectangle of remaining pixels)
+            int minCol = int.MaxValue, maxCol = int.MinValue;
+            int minRow = int.MaxValue, maxRow = int.MinValue;
+
+            foreach (var pixel in workingPixels)
+            {
+                if (pixel.column < minCol) minCol = pixel.column;
+                if (pixel.column > maxCol) maxCol = pixel.column;
+                if (pixel.row < minRow) minRow = pixel.row;
+                if (pixel.row > maxRow) maxRow = pixel.row;
+            }
+
             List<PaintingPixel> currentOutline = new List<PaintingPixel>();
-            
-            // Add pixels from the top edge (minRow)
+
+            // Top edge
             for (int col = minCol; col <= maxCol; col++)
             {
-                var pixel = FindPixelAt(workingPixels, col, minRow);
-                if (pixel != null)
+                var p = FindPixelsAt(workingPixels, col, minRow);
+                if (p != null)
                 {
-                    currentOutline.Add(pixel);
-                    workingPixels.Remove(pixel); // Remove from working list to avoid duplicates
+                    currentOutline.AddRange(p);
                 }
             }
-            
-            // Add pixels from the right edge (maxCol), excluding corners already added
+
+            // Right edge
             for (int row = minRow + 1; row <= maxRow - 1; row++)
             {
-                var pixel = FindPixelAt(workingPixels, maxCol, row);
-                if (pixel != null)
+                var p = FindPixelsAt(workingPixels, maxCol, row);
+                if (p != null)
                 {
-                    currentOutline.Add(pixel);
-                    workingPixels.Remove(pixel); // Remove from working list to avoid duplicates
+                    currentOutline.AddRange(p);
                 }
             }
-            
-            // Add pixels from the bottom edge (maxRow), in reverse order
+
+            // Bottom edge
             for (int col = maxCol; col >= minCol; col--)
             {
-                var pixel = FindPixelAt(workingPixels, col, maxRow);
-                if (pixel != null)
+                var p = FindPixelsAt(workingPixels, col, maxRow);
+                if (p != null)
                 {
-                    currentOutline.Add(pixel);
-                    workingPixels.Remove(pixel); // Remove from working list to avoid duplicates
+                    currentOutline.AddRange(p);
                 }
             }
-            
-            // Add pixels from the left edge (minCol), excluding corners already added
+
+            // Left edge
             for (int row = maxRow - 1; row >= minRow + 1; row--)
             {
-                var pixel = FindPixelAt(workingPixels, minCol, row);
-                if (pixel != null)
+                var p = FindPixelsAt(workingPixels, minCol, row);
+                if (p != null)
                 {
-                    currentOutline.Add(pixel);
-                    workingPixels.Remove(pixel); // Remove from working list to avoid duplicates
+                    currentOutline.AddRange(p);
                 }
             }
-            
-            // If we found any pixels in this outline, add it to our list
+
+            // Remove found pixels from working list
+            foreach (var p in currentOutline)
+            {
+                workingPixels.Remove(p);
+            }
+
+            // Add to results if we found any
             if (currentOutline.Count > 0)
             {
                 outlines.Add(currentOutline);
             }
-            
-            // Move to the next inner outline by shrinking the boundaries
-            minCol++;
-            maxCol--;
-            minRow++;
-            maxRow--;
+            else
+            {
+                // No outline found — break to avoid infinite loop
+                break;
+            }
         }
-        
+
         return outlines;
     }
     
     // Helper method to find a pixel at specific coordinates
-    private PaintingPixel FindPixelAt(List<PaintingPixel> pixels, int column, int row)
+    private List<PaintingPixel> FindPixelsAt(List<PaintingPixel> pixels, int column, int row)
     {
+        List<PaintingPixel> rs = new List<PaintingPixel>();
         for (int i = 0; i < pixels.Count; i++)
         {
             if (pixels[i].column == column && pixels[i].row == row)
             {
-                return pixels[i];
+                rs.Add(pixels[i]);
             }
         }
-        return null;
+        return rs;
     }
+
+    #region TOOL MODULES
+
+    #region _move
+    public void InsertAmongOtherCollector(ColorPixelsCollectorObject itemToInsert, ColorPixelsCollectorObject originItem, bool higher)
+    {
+        bool sameColumn = false;
+        CollectorColumn targetColumnToMoveTo = null;
+        CollectorColumn originColumn = null;
+        foreach (CollectorColumn column in previewSystem.CollectorColumns)
+        {
+            if (column.CollectorsInColumn.Contains(originItem))
+            {
+                targetColumnToMoveTo = column;
+                if (column.CollectorsInColumn.Contains(itemToInsert))
+                {
+                    sameColumn = true;
+                    break;
+                }
+            }
+
+            if (column.CollectorsInColumn.Contains(itemToInsert)) originColumn = column;
+        }
+
+        if (sameColumn)
+        {
+            MoveRelative(targetColumnToMoveTo.CollectorsInColumn, itemToInsert, originItem, higher);
+        }
+        else
+        {
+            originColumn.CollectorsInColumn.Remove(itemToInsert);
+            InsertRelative(targetColumnToMoveTo.CollectorsInColumn, itemToInsert, originItem, higher);
+        }
+        previewSystem.ReArrangePosition();
+        previewSystem.SetupConnectedCollectors();
+    }
+
+    public void InsertNewToOtherCollector(ColorPixelsCollectorObject itemToInsert, ColorPixelsCollectorObject originItem, bool higher)
+    {
+        bool sameColumn = false;
+        CollectorColumn targetColumnToMoveTo = null;
+        CollectorColumn originColumn = null;
+        foreach (CollectorColumn column in previewSystem.CollectorColumns)
+        {
+            if (column.CollectorsInColumn.Contains(originItem))
+            {
+                targetColumnToMoveTo = column;
+                if (column.CollectorsInColumn.Contains(itemToInsert))
+                {
+                    sameColumn = true;
+                    break;
+                }
+            }
+
+            if (column.CollectorsInColumn.Contains(originItem)) originColumn = column;
+        }
+
+        if (sameColumn)
+        {
+            MoveRelative(targetColumnToMoveTo.CollectorsInColumn, itemToInsert, originItem, higher);
+        }
+        else
+        {
+            originColumn.CollectorsInColumn.Remove(itemToInsert);
+            InsertRelative(targetColumnToMoveTo.CollectorsInColumn, itemToInsert, originItem, higher);
+        }
+        previewSystem.ReArrangePosition();
+        previewSystem.SetupConnectedCollectors();
+    }
+    #endregion
+
+    #region _split
+    public void SplitACollector(ColorPixelsCollectorObject originItem)
+    {
+        int maxBullets = originItem.BulletCapacity;
+        if (maxBullets <= 1) return;
+        int originObjBullets = maxBullets / 2;
+        int cloneObjBullets = maxBullets - originObjBullets;
+
+        ColorPixelsCollectorObject newCollector = previewSystem.CloneNewFromCollector(originItem);
+
+        originItem.BulletCapacity = originObjBullets;
+        newCollector.BulletCapacity = cloneObjBullets;
+
+        InsertNewToOtherCollector(newCollector, originItem, higher: false);
+
+        previewSystem.ReArrangePosition();
+        previewSystem.SetupConnectedCollectors();
+    }
+    #endregion
+
+    #endregion
 
     #region SUPPORTIVE
     public void StartUpTool()
     {
         ToolActive = !ToolActive;
-        if (ToolActive) BakeCollectorsPositionInTool();
+        if (ToolActive)
+        {
+            LoadConfigAsset(configAsset);
+        }
     }
     public void BakeCollectorsPositionInTool()
     {
+        OriginalCollectorPosition.Clear();
         for (int i = 0; i < previewSystem.CurrentCollectors.Count; i++)
         {
             OriginalCollectorPosition.Add(previewSystem.CurrentCollectors[i].transform.position);
+        }
+    }
+    public void ReApplyCollectorsPosition()
+    {
+        for (int i = 0; i < previewSystem.CurrentCollectors.Count; i++)
+        {
+            previewSystem.CurrentCollectors[i].transform.position = OriginalCollectorPosition[i];
         }
     }
     #endregion

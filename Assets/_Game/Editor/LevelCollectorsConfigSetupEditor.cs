@@ -1,10 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using FluffyUnderware.DevToolsEditor;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
+using UnityEngine.UIElements;
 
 [CustomEditor(typeof(LevelCollectorsConfigSetup))]
 public class LevelCollectorsConfigSetupEditor : Editor
@@ -13,9 +9,10 @@ public class LevelCollectorsConfigSetupEditor : Editor
     private string newConfigPath = "Assets/_Game/Data/GunnerConfig/";
 
     LevelCollectorsConfigSetup manager;
-    public ColorPixelsCollector selectedItem;
+    public ColorPixelsCollectorObject SelectedItem;
+    public ColorPixelsCollectorObject CollidedItem;
     private static int selectedMode = 0;
-    private static readonly string[] labels = { "Move", "Rotate", "Scale" };
+    private static readonly string[] labels = { "Move", "Swap", "Combine", "Split", "Connect" };
 
     private void OnEnable()
     {
@@ -35,12 +32,6 @@ public class LevelCollectorsConfigSetupEditor : Editor
         manager = (LevelCollectorsConfigSetup)target;
 
         #region _inspector
-
-        if (GUILayout.Button("Generate Default Config"))
-        {
-            manager.GenerateDefaultConfig();
-        }
-
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Create New Config Asset:", EditorStyles.boldLabel);
         newConfigPath = EditorGUILayout.TextField("Path", newConfigPath);
@@ -74,13 +65,6 @@ public class LevelCollectorsConfigSetupEditor : Editor
 
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Import Config:", EditorStyles.boldLabel);
-        if (GUILayout.Button("Refresh"))
-        {
-            foreach (var collector in manager.previewSystem.CurrentCollectors)
-            {
-                collector.VisualHandler.SetColor(collector.CollectorColor);
-            }
-        }
         if (GUILayout.Button("Import from Scene"))
         {
             if (EditorUtility.DisplayDialog("Confirm Generation",
@@ -96,13 +80,6 @@ public class LevelCollectorsConfigSetupEditor : Editor
                     Debug.LogWarning("Please assign both source system and target config asset!");
                 }
             }
-        }
-
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Connections:", EditorStyles.boldLabel);
-        if (GUILayout.Button("Ensure Bidirectional Connections"))
-        {
-            manager.EnsureBidirectionalConnections();
         }
 
         EditorGUILayout.Space();
@@ -140,13 +117,15 @@ public class LevelCollectorsConfigSetupEditor : Editor
             manager.StartUpTool();
         }
         GUILayout.Label("Scene Interaction", EditorStyles.boldLabel);
-        GUILayout.Label(selectedItem ? $"Selected: {selectedItem.name}" : "Click an item in Scene");
+        GUILayout.Label(SelectedItem ? $"Selected: {SelectedItem.name}" : "Click an item in Scene");
         #endregion
     }
 
+    bool firstClicked = false;
     private void OnSceneGUI()
     {
         if (!manager.ToolActive) return;
+        ShowToggles();
 
         Event e = Event.current;
 
@@ -156,54 +135,73 @@ public class LevelCollectorsConfigSetupEditor : Editor
 
             if (Physics.Raycast(worldRay, out RaycastHit hit, 1000f, manager.CollectorObjectLayerMask))
             {
-                var item = hit.collider.GetComponent<ColorPixelsCollector>();
-                if (item != null)
+                var item = hit.collider.GetComponent<ColorPixelsCollectorObject>();
+                if (item != null && item != SelectedItem)
                 {
-                    selectedItem = item;
+                    firstClicked = true;
+                    CollidedItem = null;
+                    SelectedItem = item;
                     Selection.activeGameObject = item.gameObject;
                     SceneView.RepaintAll();
-                    //e.Use(); // chặn click này không bị SceneView dùng
+                    e.Use(); // chặn click này không bị SceneView dùng
                 }
             }
         }
 
-        if (selectedItem != null)
+        bool endAction = e.type == EventType.MouseUp && e.button == 0 && !e.alt;
+        //Debug.Log("Reset: " +  reset);
+
+        if (SelectedItem != null && !endAction)
         {
             Handles.color = Color.cyan;
             EditorGUI.BeginChangeCheck();
-            Vector3 newPos = Handles.PositionHandle(selectedItem.transform.position, selectedItem.transform.rotation);
+            Vector3 newPos = Handles.PositionHandle(SelectedItem.transform.position, SelectedItem.transform.rotation);
 
-            Undo.RecordObject(selectedItem.transform, "Move Item");
-            selectedItem.transform.position = newPos;
+            Undo.RecordObject(SelectedItem.transform, "Move Item");
+            SelectedItem.transform.position = newPos;
 
-            CheckCollisions(selectedItem);
+            CheckCollisions(SelectedItem);
 
             Handles.color = Color.yellow;
-            Handles.DrawWireDisc(selectedItem.transform.position, Vector3.up, manager.CollisionRadius);
-            //EditorGUI.EndChangeCheck();
+            Handles.DrawWireDisc(SelectedItem.transform.position, Vector3.up, manager.CollisionRadius);
         }
-
-        ShowToggles();
+        else if (endAction)
+        {
+            bool hasSelectedItem = SelectedItem != null;
+            bool hasCollidedItem = CollidedItem != null;
+            if (!firstClicked)
+            {
+                switch (selectedMode)
+                {
+                    case 0: if(hasSelectedItem && hasCollidedItem) manager.MoveModule.Move(SelectedItem, CollidedItem); break;
+                    case 1: if (hasSelectedItem && hasCollidedItem) manager.SwapModule.Swap(SelectedItem, CollidedItem); break;
+                    case 2: if (hasSelectedItem && hasCollidedItem) manager.CombineModule.Combine(SelectedItem, CollidedItem); break;
+                    case 3: if (hasSelectedItem) manager.SplitModule.Split(SelectedItem); break;
+                }
+                SelectedItem = null;
+                CollidedItem = null;
+            }
+            firstClicked = false;
+            manager.ReApplyCollectorsPosition();
+        }
     }
 
-    private void CheckCollisions(ColorPixelsCollector current)
+    private void CheckCollisions(ColorPixelsCollectorObject current)
     {
         foreach (var other in manager.previewSystem.CurrentCollectors)
         {
             if (other == null || other == current) continue;
-
             float distance = Vector3.Distance(current.transform.position, other.transform.position);
             float minDist = manager.CollisionRadius * 2;
 
             if (distance < minDist)
             {
+                CollidedItem = other;
                 Handles.color = Color.red;
                 Handles.DrawLine(current.transform.position, other.transform.position);
-
                 Debug.Log($"Collision between {current.name} and {other.name}");
 
-                if (current.TryGetComponent<Renderer>(out var rend))
-                    rend.sharedMaterial.color = Color.red;
+                if (current.TryGetComponent<Renderer>(out var rend)) rend.sharedMaterial.color = Color.red;
             }
         }
     }
@@ -212,11 +210,10 @@ public class LevelCollectorsConfigSetupEditor : Editor
     {
         Handles.BeginGUI();
 
-        // Lấy kích thước SceneView
-        float width = 300f; // chiều rộng khung chứa 3 toggle
+        float width = 300f;
         float height = 50f;
-        float x = (sceneView.position.width - width) * 0.5f;  // canh giữa
-        float y = sceneView.position.height - height - 20f;   // cách đáy 20px
+        float x = (SceneView.currentDrawingSceneView.position.width - width) * 0.5f;  // canh giữa
+        float y = SceneView.currentDrawingSceneView.position.height - height - 20f;   // cách đáy 20px
 
         GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
 

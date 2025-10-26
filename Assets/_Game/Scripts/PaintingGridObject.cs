@@ -1,9 +1,8 @@
-using Cysharp.Threading.Tasks;
+using Random = UnityEngine.Random;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using System;
-using System.Collections.Generic;
-using Random = UnityEngine.Random;
-using System.Linq;
 
 [System.Serializable]
 public class IntPixelListPair
