@@ -207,6 +207,7 @@ public class LevelCollectorsSystem : MonoBehaviour
                     // Set locked state (this might be handled by deactivating the collector)
                     if (false) collector.SetCollectorActive(!config.Locked);
 
+                    collector.IsCollectorActive = false;
                     collector.ApplyHiddenState();
                     collector.ApplyLockedState();
 
