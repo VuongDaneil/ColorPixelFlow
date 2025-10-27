@@ -7,7 +7,7 @@ public class PaintingConfigSetup : MonoBehaviour
 {
     [Header("Input Settings")]
     public Sprite TargetPainting;
-    public PaintingGridObject targetGrid;
+    [ReadOnly] public PaintingGridObject CurrentGridObject;
     public ColorPalleteData colorPalette;
     
     [Header("Color Filter Settings")]
@@ -26,7 +26,7 @@ public class PaintingConfigSetup : MonoBehaviour
             return;
         }
 
-        if (targetGrid == null)
+        if (CurrentGridObject == null)
         {
             Debug.LogError("TargetGrid is not assigned!");
             return;
@@ -39,7 +39,7 @@ public class PaintingConfigSetup : MonoBehaviour
         }
 
         // Get grid size from target grid
-        Vector2 gridSize = targetGrid.gridSize;
+        Vector2 gridSize = CurrentGridObject.gridSize;
         int gridWidth = (int)gridSize.x;
         int gridHeight = (int)gridSize.y;
 
@@ -266,7 +266,7 @@ public class PaintingConfigSetup : MonoBehaviour
         // If color filtering is not enabled, we can use any color from the palette
         if (!useColorFilter)
         {
-            return TargetPainting != null && targetGrid != null && colorPalette != null;
+            return TargetPainting != null && CurrentGridObject != null && colorPalette != null;
         }
         
         // If color filtering is enabled but colorCodeInUse is empty, we can't filter
@@ -284,11 +284,6 @@ public class PaintingConfigSetup : MonoBehaviour
             }
         }
         
-        return TargetPainting != null && targetGrid != null && colorPalette != null;
-    }
-
-    public void CreateNewPaintingConfig(Sprite _painting, string name = "")
-    {
-
+        return TargetPainting != null && CurrentGridObject != null && colorPalette != null;
     }
 }

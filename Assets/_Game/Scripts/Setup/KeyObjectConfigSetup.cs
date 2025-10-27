@@ -1,5 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using System.Linq;
 using UnityEngine;
 
@@ -10,7 +10,7 @@ public class KeyObjectConfigSetup : MonoBehaviour
     public List<KeyObjectSetup> keyObjectSetups; // To store all the pipe that being setup
 
     [Header("References")]
-    public PaintingGridObject gridObject; // GridObject (PaintingGridObject.cs)
+    [ReadOnly] public PaintingGridObject gridObject; // GridObject (PaintingGridObject.cs)
 
     [Header("Prefabs")]
     public GameObject KeyPrefab;

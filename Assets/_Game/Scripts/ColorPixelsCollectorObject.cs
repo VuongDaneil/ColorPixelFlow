@@ -65,26 +65,31 @@ public class ColorPixelsCollectorObject : MonoBehaviour
     #endregion
 
     #region UNITY CORE
+    private void Awake()
+    {
+        RegisterEvents();
+    }
     private void Start()
     {
         InitializeCollector();
     }
+    private void OnDisable()
+    {
+        UnregisterEvents();
+    }
     private void OnDestroy()
     {
-        // Unsubscribe from grid change event
-        GameplayEventsManager.OnGridPixelsChanged -= OnGridPixelsChanged;
+        UnregisterEvents();
     }
 
     private void Update()
     {
-        if (!IsCollectorActive || CurrentGrid == null)
-            return;
+        if (!IsCollectorActive) return;
 
         // Check for movement direction change to reset processed positions
         CheckMovementDirectionChange();
 
         // Check for nearby pixels to destroy
-        UpdatePossibleTargets();
         CheckAndDestroyNearbyPixels();
     }
 
@@ -93,6 +98,19 @@ public class ColorPixelsCollectorObject : MonoBehaviour
     #region MAIN
 
     #region _events
+
+    private void RegisterEvents()
+    {
+        GameplayEventsManager.OnGridObjectChanged += OnGridPixelsChanged;
+        GameplayEventsManager.OnPaintingInitializeDone += OnGridPaintingObjectInitialized;
+    }
+
+    private void UnregisterEvents()
+    {
+        GameplayEventsManager.OnGridObjectChanged -= OnGridPixelsChanged;
+        GameplayEventsManager.OnPaintingInitializeDone -= OnGridPaintingObjectInitialized;
+    }
+
     // Callback for when grid pixels change
     private void OnGridPixelsChanged(PaintingGridObject changedGrid)
     {
@@ -103,29 +121,10 @@ public class ColorPixelsCollectorObject : MonoBehaviour
         }
     }
 
-    // Public method to reset the collector
-    public void ResetCollector()
+    private void OnGridPaintingObjectInitialized(PaintingGridObject _gridObject)
     {
-        BulletLeft = BulletCapacity;
-        IsCollectorActive = true;
-        UpdatePossibleTargets();
-
-        // Clear processed positions when resetting
-        processedHorizontalPositions.Clear();
-        processedVerticalPositions.Clear();
-
-        if (MovementHandle != null)
-        {
-            MovementHandle.StartMovement();
-
-            // Update movement direction after reset
-            if (MovementHandle.transformPath != null && MovementHandle.transformPath.IsValid())
-            {
-                Vector3 initialDirection = MovementHandle.GetTangentAtTF(MovementHandle.currentTF);
-                previousMovementDirection = initialDirection;
-                currentMovementDirection = DetermineMovementDirection(initialDirection);
-            }
-        }
+        CurrentGrid = _gridObject;
+        InitializeCollector();
     }
 
     // Public method to activate/deactivate the collector
@@ -162,6 +161,7 @@ public class ColorPixelsCollectorObject : MonoBehaviour
         IsLocked = false;
         ApplyLockedState();
     }
+
     #endregion
 
     #region _initialize
@@ -182,9 +182,6 @@ public class ColorPixelsCollectorObject : MonoBehaviour
         }
 
         UpdatePossibleTargets();
-
-        // Subscribe to grid change event
-        GameplayEventsManager.OnGridPixelsChanged += OnGridPixelsChanged;
     }
     #endregion
 
@@ -279,10 +276,9 @@ public class ColorPixelsCollectorObject : MonoBehaviour
         if (CurrentGrid != null)
         {
             // Get all outline pixels with the matching color code
-            System.Collections.Generic.List<PaintingPixel> outlinePixelsWithColor =
-                CurrentGrid.SelectOutlinePixelsWithColor(CollectorColor);
+            List<PaintingPixel> outlinePixelsWithColor = CurrentGrid.SelectOutlinePixelsWithColor(CollectorColor);
 
-            if (outlinePixelsWithColor != null)
+            if (outlinePixelsWithColor != null && outlinePixelsWithColor.Count > 0)
             {
                 possibleTargets = outlinePixelsWithColor.ToArray();
                 possibleTargetsCount = outlinePixelsWithColor.Count;
@@ -387,9 +383,6 @@ public class ColorPixelsCollectorObject : MonoBehaviour
 
             // Destroy the pixel using the grid's method
             CurrentGrid.ShootPixel(pixel);
-
-            // Update possible targets since the grid has changed
-            UpdatePossibleTargets();
         }
     }
     // Method to check for obstacles in the same row when moving horizontally

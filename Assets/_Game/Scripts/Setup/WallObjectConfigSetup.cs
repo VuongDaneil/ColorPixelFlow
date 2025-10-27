@@ -1,5 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using System.Linq;
 using UnityEngine;
 
@@ -10,7 +10,7 @@ public class WallObjectConfigSetup : MonoBehaviour
     public List<WallObjectSetup> wallObjectSetups; // To store all the Wall that being setup
 
     [Header("References")]
-    public PaintingGridObject gridObject; // GridObject (PaintingGridObject.cs)
+    [ReadOnly] public PaintingGridObject gridObject; // GridObject (PaintingGridObject.cs)
 
     [Header("Prefabs")]
     public GameObject WallPrefab;

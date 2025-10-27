@@ -62,12 +62,12 @@ public class PaintingConfigSetupEditor : Editor
         EditorGUILayout.PropertyField(resultPaintingConfigProp, new GUIContent("Result Painting Config", "The generated PaintingConfig asset"));
         
         // Display grid information if available
-        if (setup.targetGrid != null)
+        if (setup.CurrentGridObject != null)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Grid Information", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField($"Grid Size: {setup.targetGrid.gridSize.x} x {setup.targetGrid.gridSize.y}");
-            EditorGUILayout.LabelField($"Total Pixels: {setup.targetGrid.GetTotalPixels()}");
+            EditorGUILayout.LabelField($"Grid Size: {setup.CurrentGridObject.gridSize.x} x {setup.CurrentGridObject.gridSize.y}");
+            EditorGUILayout.LabelField($"Total Pixels: {setup.CurrentGridObject.GetTotalPixels()}");
         }
         
         // Display color palette information if available

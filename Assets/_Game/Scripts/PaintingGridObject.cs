@@ -1,22 +1,10 @@
+using static PaintingSharedAttributes;
 using Random = UnityEngine.Random;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using System.Linq;
 using UnityEngine;
 using System;
-using NaughtyAttributes;
-
-[System.Serializable]
-public class IntPixelListPair
-{
-    public int key;
-    public List<PaintingPixel> pixels;
-    
-    public IntPixelListPair(int key, List<PaintingPixel> pixels)
-    {
-        this.key = key;
-        this.pixels = pixels;
-    }
-}
 
 public class PaintingGridObject : MonoBehaviour
 {
@@ -28,67 +16,55 @@ public class PaintingGridObject : MonoBehaviour
     public ColorPalleteData colorPallete;
 
     // Lists for faster lookup by row and column (serializable)
-    public List<IntPixelListPair> pixelsByRow;
-    public List<IntPixelListPair> pixelsByColumn;
+    public List<IntPixelListPair> pixelsByRow = new List<IntPixelListPair>();
+    public List<IntPixelListPair> pixelsByColumn = new List<IntPixelListPair>();
 
     public List<List<PaintingPixel>> Rows = new List<List<PaintingPixel>>();
 
     [Header("Pipes")]
-    public List<PipeObject> pipeObjects;
-    
+    public List<PipeObject> pipeObjects = new List<PipeObject>();
+
     [Header("Pipe Object Pixels")]
-    public List<PaintingPixel> pipeObjectsPixels;  // New list for pipe pixels that are outside the grid
+    public List<PaintingPixel> pipeObjectsPixels = new List<PaintingPixel>();  // New list for pipe pixels that are outside the grid
 
     [Header("Walls")]
-    public List<WallObject> wallObjects;
+    public List<WallObject> wallObjects = new List<WallObject>();
 
     [Header("Wall Object Pixels")]
-    public List<PaintingPixel> wallObjectsPixels;
+    public List<PaintingPixel> wallObjectsPixels = new List<PaintingPixel>();
 
     [Header("Keys")]
-    public List<KeyObject> keyObjects;
+    public List<KeyObject> keyObjects = new List<KeyObject>();
 
     [Header("Key Object Pixels")]
-    public List<PaintingPixel> keyObjectsPixels;
+    public List<PaintingPixel> keyObjectsPixels = new List<PaintingPixel>();
 
     [Header("Grid Settings")]
     public float pixelArrangeSpace = 1.0f;
     public float pixelScaleFactor = 1.0f;
     public GameObject pixelPrefab;
-    
+
     [Header("Painting Configuration")]
     [ReadOnly] public PaintingConfig paintingConfig;
-    
+
     [Header("Color Variation")]
     [Range(0.0f, 1.0f)]
     public float colorVariationAmount = 0.0f;
-    
+
     [Header("Default Prefabs")]
     public GameObject DefaultPipeHeadPrefab;
     public GameObject DefaultPipeBodyPrefab;
     public GameObject DefaultPipeTailPrefab;
     public GameObject WallObjectPrefab;
     public GameObject KeyObjectPrefab;
+
+    private List<PaintingPixel> currentOutlinePixels = new List<PaintingPixel>();
     #endregion
 
     #region UNITY CORE
     private void Awake()
     {
         RegisterEvent();
-
-        ApplyPaintingConfig();
-        // Initialize the mapping lists
-        pixelsByRow = new List<IntPixelListPair>();
-        pixelsByColumn = new List<IntPixelListPair>();
-
-        // Initialize mappings from existing pixels if they exist
-        InitializePixelMappings();
-
-        // Initialize pipe objects list if it's null
-        if (pipeObjects == null) pipeObjects = new List<PipeObject>();
-
-        // Initialize pipe objects pixels list if it's null
-        if (pipeObjectsPixels == null) pipeObjectsPixels = new List<PaintingPixel>();
     }
 
     private void OnDestroy()
@@ -100,6 +76,19 @@ public class PaintingGridObject : MonoBehaviour
     #region MAIN
 
     #region _initialize
+
+    public void InitializeLevel()
+    {
+        ApplyPaintingConfig();
+
+        // Initialize mappings from existing pixels if they exist
+        InitializePixelMappings();
+
+        currentOutlinePixels = SelectOutlinePixels();
+
+        GameplayEventsManager.OnPaintingInitializeDone?.Invoke(this);
+    }
+
     // Method to apply painting configuration to the grid
     public void ApplyPaintingConfig()
     {
@@ -135,9 +124,6 @@ public class PaintingGridObject : MonoBehaviour
     public void ShootPixel(PaintingPixel pixel)
     {
         pixel.DestroyPixel();
-
-        // Trigger event to notify that grid pixels have changed
-        GameplayEventsManager.OnGridPixelsChanged?.Invoke(this);
     }
 
     public void DestroyAllPixelsObjects()
@@ -265,13 +251,11 @@ public class PaintingGridObject : MonoBehaviour
 
     public List<PaintingPixel> SelectOutlinePixelsWithColor(string colorCode)
     {
-        List<PaintingPixel> outlinePixels = SelectOutlinePixels();
-
-        if (paintingPixels == null || paintingPixels.Count == 0)
+        if (paintingPixels == null || paintingPixels.Count <= 0 || currentOutlinePixels.Count <= 0)
         {
-            return outlinePixels;
+            return null;
         }
-        var rs = outlinePixels.FindAll(x => (x.colorCode == colorCode || x.colorCode.Equals(PaintingSharedAttributes.KeyColorDefine))).ToList();
+        var rs = currentOutlinePixels.FindAll(x => (x.colorCode == colorCode || x.colorCode.Equals(LockKeyColorDefine))).ToList();
         return rs;
     }
     #endregion
@@ -354,27 +338,12 @@ public class PaintingGridObject : MonoBehaviour
             }
         }
     }
+
     // Initialize the row and column mapping lists from the existing paintingPixels
     private void InitializePixelMappings()
     {
-        // Initialize the lists if they're null
-        if (pixelsByRow == null)
-        {
-            pixelsByRow = new List<IntPixelListPair>();
-        }
-        else
-        {
-            pixelsByRow.Clear();
-        }
-
-        if (pixelsByColumn == null)
-        {
-            pixelsByColumn = new List<IntPixelListPair>();
-        }
-        else
-        {
-            pixelsByColumn.Clear();
-        }
+        pixelsByRow.Clear();
+        pixelsByColumn.Clear();
 
         // Populate the mappings with current painting pixels
         if (paintingPixels != null)
@@ -408,6 +377,7 @@ public class PaintingGridObject : MonoBehaviour
             }
         }
     }
+
     public void InitializeGrid(Vector2 size, float arrangeSpace, GameObject prefab, float scaleFactor = 1.0f)
     {
         this.gridSize = size;
@@ -518,35 +488,54 @@ public class PaintingGridObject : MonoBehaviour
     {
         if (_pixel == null) return;
 
-        foreach (PipeObject pipe in pipeObjects)
+        bool destroyed = false;
+
+        if (!destroyed)
         {
-            if (pipe.Destroyed || _pixel.colorCode != pipe.ColorCode) continue;
-            if (pipe.PaintingPixelsCovered.Contains(_pixel))
+            foreach (PipeObject pipe in pipeObjects)
             {
-                pipe.OnAPixelDestroyed();
-                return;
+                if (pipe.Destroyed || _pixel.colorCode != pipe.ColorCode) continue;
+                if (pipe.PaintingPixelsCovered.Contains(_pixel))
+                {
+                    destroyed = true;
+                    pipe.OnAPixelDestroyed();
+                    break;
+                }
             }
         }
 
-        foreach (WallObject wall in wallObjects)
+        if (!destroyed)
         {
-            if (wall.Destroyed || _pixel.colorCode != wall.ColorCode) continue;
-            if (wall.PaintingPixelsCovered.Contains(_pixel))
+            foreach (WallObject wall in wallObjects)
             {
-                wall.OnAPixelDestroyed();
-                return;
+                if (wall.Destroyed || _pixel.colorCode != wall.ColorCode) continue;
+                if (wall.PaintingPixelsCovered.Contains(_pixel))
+                {
+                    destroyed = true;
+                    wall.OnAPixelDestroyed();
+                    break;
+                }
             }
         }
 
-        foreach (KeyObject key in keyObjects)
+        if (!destroyed)
         {
-            if (key.Collected || _pixel.colorCode != PaintingSharedAttributes.KeyColorDefine) continue;
-            if (key.PaintingPixelsCovered.Contains(_pixel))
+            foreach (KeyObject key in keyObjects)
             {
-                key.OnAPixelDestroyed();
-                return;
+                if (key.Collected || _pixel.colorCode != LockKeyColorDefine) continue;
+                if (key.PaintingPixelsCovered.Contains(_pixel))
+                {
+                    destroyed = true;
+                    key.OnAPixelDestroyed();
+                    break;
+                }
             }
         }
+
+        currentOutlinePixels = SelectOutlinePixels();
+
+        // Trigger event to notify that grid pixels have changed
+        GameplayEventsManager.OnGridObjectChanged?.Invoke(this);
     }
     #endregion
 

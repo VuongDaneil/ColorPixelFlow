@@ -7,10 +7,10 @@ using System.IO;
 public class LevelConfigSetup : MonoBehaviour
 {
     #region PROPERTIES
-    [Header("LEVEL")]
+    [Header("LEVEL DATA(s)")]
     public LevelConfig CurrentLevel;
-    [ReadOnly] public PaintingConfig CurrentLevelPaintingConfig;
-    [ReadOnly] public LevelColorCollectorsConfig CurrentLevelCollectorConfig;
+    public PaintingConfig CurrentLevelPaintingConfig;
+    public LevelColorCollectorsConfig CurrentLevelCollectorConfig;
     public Sprite CurrentPainting;
 
     [Header("CONTROLLER(s)")]
@@ -35,48 +35,27 @@ public class LevelConfigSetup : MonoBehaviour
     private void OnValidate()
     {
         if (Application.isPlaying) return;
-        if (CurrentLevel == null) return;
-        CurrentLevelCollectorConfig = CurrentLevel.CollectorsConfig;
-        CurrentLevelPaintingConfig = CurrentLevel.BlocksPaintingConfig;
+        SetUpComponents();
+    }
 
-        if (CurrentLevelPaintingConfig != null)
-        {
-            CurrentGridObject.paintingConfig = CurrentLevelPaintingConfig;
-            PaintingSetup.ResultPaintingConfig = CurrentLevelPaintingConfig;
-            PipeObjectSetup.CurrentLevelObjectSetups = CurrentLevelPaintingConfig.PipeSetups;
-        }
+    private void Awake()
+    {
+        SetUpComponents();
+    }
 
-        if (CurrentLevelCollectorConfig != null)
-        {
-            LevelCollectorsSetup.configAsset = CurrentLevelCollectorConfig;
-            LevelCollectorsSetup.paintingConfig = CurrentLevelPaintingConfig;
-            LevelCollectorsManager.CurrentLevelCollectorsConfig = CurrentLevelCollectorConfig;
-        }
-
-        if (WallObjectSetup.gridObject != null)
-        {
-            WallObjectSetup.CurrentLevelWallObjectSetups = CurrentLevelPaintingConfig.WallSetups;
-        }
-
-        if (KeyObjectSetup.gridObject != null)
-        {
-            KeyObjectSetup.CurrentLevelKeyObjectSetups = CurrentLevelPaintingConfig.KeySetups;
-        }
-
-        if (PaintingAdvancedSetup != null)
-        {
-            PaintingAdvancedSetup.CurrentLevelPaintingConfig = CurrentLevelPaintingConfig;
-        }
+    private void Start()
+    {
+        LoadLevel();
     }
     #endregion
 
     #region MAIN
     [Button("LOAD LEVEL")]
-    public void SetupLevel()
+    public void LoadLevel()
     {
         ClearLevel();
         LevelCollectorsManager.SetupCollectors();
-        CurrentGridObject.ApplyPaintingConfig();
+        CurrentGridObject.InitializeLevel();
     }
 
     [Button("CLEAR LEVEL")]
@@ -87,6 +66,59 @@ public class LevelConfigSetup : MonoBehaviour
         CurrentGridObject.ClearAllPipes();
         CurrentGridObject.ClearAllWalls();
         CurrentGridObject.ClearToWhite();
+    }
+
+    /// <summary>
+    /// Dont mind this, leave it alone
+    /// </summary>
+    public void SetUpComponents()
+    {
+        if (CurrentLevel == null) return;
+
+        CurrentLevelCollectorConfig = CurrentLevel.CollectorsConfig;
+        CurrentLevelPaintingConfig = CurrentLevel.BlocksPaintingConfig;
+
+        if (PaintingSetup)
+        {
+            PaintingSetup.CurrentGridObject = CurrentGridObject;
+            PaintingSetup.ResultPaintingConfig = CurrentLevelPaintingConfig;
+        }
+
+        if (PaintingAdvancedSetup)
+        {
+            PaintingAdvancedSetup.CurrentLevelPaintingConfig = CurrentLevelPaintingConfig;
+        }
+
+        if (PipeObjectSetup)
+        {
+            PipeObjectSetup.CurrentLevelObjectSetups = CurrentLevelPaintingConfig.PipeSetups;
+        }
+
+        if (CurrentGridObject)
+        {
+            CurrentGridObject.paintingConfig = CurrentLevelPaintingConfig;
+        }
+
+        if (WallObjectSetup)
+        {
+            WallObjectSetup.CurrentLevelWallObjectSetups = CurrentLevelPaintingConfig.WallSetups;
+        }
+
+        if (LevelCollectorsManager)
+        {
+            LevelCollectorsManager.CurrentLevelCollectorsConfig = CurrentLevelCollectorConfig;
+        }
+
+        if (LevelCollectorsSetup)
+        {
+            LevelCollectorsSetup.configAsset = CurrentLevelCollectorConfig;
+            LevelCollectorsSetup.paintingConfig = CurrentLevelPaintingConfig;
+        }
+
+        if (KeyObjectSetup)
+        {
+            KeyObjectSetup.CurrentLevelKeyObjectSetups = CurrentLevelPaintingConfig.KeySetups;
+        }
     }
 
 #if UNITY_EDITOR
@@ -106,7 +138,6 @@ public class LevelConfigSetup : MonoBehaviour
         OnValidate();
     }
 
-#if UNITY_EDITOR
     public LevelConfig CreateConfigAsset(string configName, PaintingConfig paintingConfig, LevelColorCollectorsConfig collectorConfig, string path = null)
     {
         if (string.IsNullOrEmpty(path))
@@ -142,7 +173,6 @@ public class LevelConfigSetup : MonoBehaviour
         Debug.Log($"Created new LevelColorCollectorsConfig asset at {assetPath}");
         return newConfig;
     }
-#endif
 #endif
 
     #endregion

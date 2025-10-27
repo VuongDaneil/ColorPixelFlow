@@ -1,7 +1,6 @@
-using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
-using TMPro;
+using NaughtyAttributes;
+using UnityEngine;
 
 public class PipeObjectConfigSetup : MonoBehaviour
 {
@@ -10,7 +9,7 @@ public class PipeObjectConfigSetup : MonoBehaviour
     public List<PipeObjectSetup> pipeObjectSetups; // To store all the pipe that being setup
     
     [Header("References")]
-    public PaintingGridObject gridObject; // GridObject (PaintingGridObject.cs)
+    [ReadOnly] public PaintingGridObject gridObject; // GridObject (PaintingGridObject.cs)
     
     [Header("Prefabs")]
     public GameObject PipeHeadPrefab;     // Head of pipe, spawn at head pixel position

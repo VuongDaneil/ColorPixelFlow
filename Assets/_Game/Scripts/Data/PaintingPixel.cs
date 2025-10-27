@@ -61,8 +61,9 @@ public class PaintingPixel
     public void SetUp(Color color, string colorCode, bool hidden)
     {
         this.color = color;
-        this.colorCode = colorCode;
         this.Hidden = hidden;
+        this.destroyed = false;
+        this.colorCode = colorCode;
 
         PixelComponent?.SetUp(this);
 

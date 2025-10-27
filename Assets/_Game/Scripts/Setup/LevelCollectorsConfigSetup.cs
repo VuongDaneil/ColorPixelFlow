@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using NaughtyAttributes;
 using UnityEngine;
 using System.Linq;
-using UnityEngine.UI;
-
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -13,6 +11,7 @@ using System.IO;
 
 public class LevelCollectorsConfigSetup : MonoBehaviour
 {
+    #region PROPERTIES
     [Header("Configuration")]
     [ReadOnly] public LevelColorCollectorsConfig configAsset; // The config asset to set up
     [ReadOnly] public PaintingConfig paintingConfig;
@@ -45,42 +44,9 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
     public SplitCollector SplitModule;
     public CombinesCollector CombineModule;
     public ConnectCollectors ConnectModule;
+    #endregion
 
-#if UNITY_EDITOR
-    public LevelColorCollectorsConfig CreateConfigAsset(string configName, string path = null)
-    {
-        if (string.IsNullOrEmpty(path))
-        {
-            path = CollectorsConfigPath;
-        }
-        if (string.IsNullOrEmpty(configName))
-        {
-            Debug.LogError("Config name cannot be empty!");
-            return null;
-        }
-
-        // Ensure the path ends with a slash
-        if (!path.EndsWith("/"))
-        {
-            path += "/";
-        }
-
-        // Create the directory if it doesn't exist
-        if (!Directory.Exists(path))
-        {
-            Directory.CreateDirectory(path);
-        }
-
-        string assetPath = path + configName + ".asset";
-        LevelColorCollectorsConfig newConfig = ScriptableObject.CreateInstance<LevelColorCollectorsConfig>();
-        AssetDatabase.CreateAsset(newConfig, assetPath);
-        AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-
-        Debug.Log($"Created new LevelColorCollectorsConfig asset at {assetPath}");
-        return newConfig;
-    }
-#endif
+    #region MAIN
 
     public void LoadConfigAsset(LevelColorCollectorsConfig sourceConfig)
     {
@@ -493,6 +459,106 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         }
         return rs;
     }
+    #endregion
+
+    #region SUPPORTIVE
+    public void StartUpTool()
+    {
+        ToolActive = !ToolActive;
+        if (ToolActive)
+        {
+            List<PaintingPixelConfig> allWorkingPixels = paintingConfig.GetAllWorkingPixels();
+            NumberOfWorkingPixels = allWorkingPixels.Count;
+            colorSetCounters.Clear();
+            foreach (var pixel in allWorkingPixels)
+            {
+                if (pixel.Hidden) continue; // Skip hidden pixels
+                if (colorSetCounters.ContainsKey(pixel.colorCode))
+                {
+                    colorSetCounters[pixel.colorCode]++;
+                }
+                else
+                {
+                    colorSetCounters[pixel.colorCode] = 1;
+                }
+            }
+
+            ReCountCollectors();
+
+            LoadConfigAsset(configAsset);
+        }
+    }
+    public void BakeCollectorsPositionInTool()
+    {
+        OriginalCollectorPosition.Clear();
+        for (int i = 0; i < previewSystem.CurrentCollectors.Count; i++)
+        {
+            OriginalCollectorPosition.Add(previewSystem.CurrentCollectors[i].transform.position);
+        }
+    }
+    public void ReApplyCollectorsPosition()
+    {
+        for (int i = 0; i < previewSystem.CurrentCollectors.Count; i++)
+        {
+            previewSystem.CurrentCollectors[i].transform.position = OriginalCollectorPosition[i];
+        }
+    }
+    public void ReCountCollectors()
+    {
+        TotalBulletsCount = 0;
+        NumberOfLockedCollector = 0;
+        collectorSetCounters.Clear();
+        foreach (var collector in previewSystem.CurrentCollectors)
+        {
+            if (collectorSetCounters.ContainsKey(collector.CollectorColor))
+            {
+                collectorSetCounters[collector.CollectorColor]++;
+            }
+            else
+            {
+                collectorSetCounters[collector.CollectorColor] = 1;
+            }
+            TotalBulletsCount += collector.BulletCapacity;
+            if (collector.IsLocked) NumberOfLockedCollector++;
+        }
+    }
+
+#if UNITY_EDITOR
+    public LevelColorCollectorsConfig CreateConfigAsset(string configName, string path = null)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            path = CollectorsConfigPath;
+        }
+        if (string.IsNullOrEmpty(configName))
+        {
+            Debug.LogError("Config name cannot be empty!");
+            return null;
+        }
+
+        // Ensure the path ends with a slash
+        if (!path.EndsWith("/"))
+        {
+            path += "/";
+        }
+
+        // Create the directory if it doesn't exist
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+
+        string assetPath = path + configName + ".asset";
+        LevelColorCollectorsConfig newConfig = ScriptableObject.CreateInstance<LevelColorCollectorsConfig>();
+        AssetDatabase.CreateAsset(newConfig, assetPath);
+        AssetDatabase.SaveAssets();
+        AssetDatabase.Refresh();
+
+        Debug.Log($"Created new LevelColorCollectorsConfig asset at {assetPath}");
+        return newConfig;
+    }
+#endif
+    #endregion
 
     #region TOOL MODULES
 
@@ -584,68 +650,5 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
     }
     #endregion
 
-    #endregion
-
-    #region SUPPORTIVE
-    public void StartUpTool()
-    {
-        ToolActive = !ToolActive;
-        if (ToolActive)
-        {
-            List<PaintingPixelConfig> allWorkingPixels = paintingConfig.GetAllWorkingPixels();
-            NumberOfWorkingPixels = allWorkingPixels.Count;
-            colorSetCounters.Clear();
-            foreach (var pixel in allWorkingPixels)
-            {
-                if (pixel.Hidden) continue; // Skip hidden pixels
-                if (colorSetCounters.ContainsKey(pixel.colorCode))
-                {
-                    colorSetCounters[pixel.colorCode]++;
-                }
-                else
-                {
-                    colorSetCounters[pixel.colorCode] = 1;
-                }
-            }
-
-            ReCountCollectors();
-
-            LoadConfigAsset(configAsset);
-        }
-    }
-    public void BakeCollectorsPositionInTool()
-    {
-        OriginalCollectorPosition.Clear();
-        for (int i = 0; i < previewSystem.CurrentCollectors.Count; i++)
-        {
-            OriginalCollectorPosition.Add(previewSystem.CurrentCollectors[i].transform.position);
-        }
-    }
-    public void ReApplyCollectorsPosition()
-    {
-        for (int i = 0; i < previewSystem.CurrentCollectors.Count; i++)
-        {
-            previewSystem.CurrentCollectors[i].transform.position = OriginalCollectorPosition[i];
-        }
-    }
-    public void ReCountCollectors()
-    {
-        TotalBulletsCount = 0;
-        NumberOfLockedCollector = 0;
-        collectorSetCounters.Clear();
-        foreach (var collector in previewSystem.CurrentCollectors)
-        {
-            if (collectorSetCounters.ContainsKey(collector.CollectorColor))
-            {
-                collectorSetCounters[collector.CollectorColor]++;
-            }
-            else
-            {
-                collectorSetCounters[collector.CollectorColor] = 1;
-            }
-            TotalBulletsCount += collector.BulletCapacity;
-            if (collector.IsLocked) NumberOfLockedCollector++;
-        }
-    }
     #endregion
 }

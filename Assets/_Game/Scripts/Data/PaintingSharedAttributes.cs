@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class PaintingSharedAttributes
 {
-    public static string KeyColorDefine = "KeyColor";
+    public static string LockKeyColorDefine = "KeyColor";
     public static string DefaultColorKey = "DefaultColor";
     public static string TransparentColorKey = "TransparentColor";
 
@@ -76,4 +76,20 @@ public static class PaintingSharedAttributes
         }
         return null;
     }
+
+    #region _custom attributes
+    [System.Serializable]
+    public class IntPixelListPair
+    {
+        public int key;
+        public List<PaintingPixel> pixels;
+
+        public IntPixelListPair(int key, List<PaintingPixel> pixels)
+        {
+            this.key = key;
+            this.pixels = pixels;
+        }
+    }
+
+    #endregion
 }
