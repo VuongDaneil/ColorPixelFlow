@@ -124,7 +124,7 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
                     ColorCode = collector.CollectorColor, // Use the color code the collector can destroy
                     Bullets = collector.BulletCapacity, // Use remaining bullets
                     Locked = collector.IsLocked,
-                    Hidden = collector.IsHidden, // Default to not hidden
+                    Hidden = collector.IsHidden,
                     ConnectedCollectorsIDs = new List<int>(collector.ConnectedCollectorsIDs) // Default to no connections
                 };
                 newColumn.Collectors.Add(newCollector);
