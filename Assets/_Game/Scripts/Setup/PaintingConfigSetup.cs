@@ -1,11 +1,12 @@
 using static PaintingSharedAttributes;
 using System.Collections.Generic;
+using NaughtyAttributes;
 using UnityEngine;
 
 public class PaintingConfigSetup : MonoBehaviour
 {
     [Header("Input Settings")]
-    public Sprite targetPainting;
+    public Sprite TargetPainting;
     public PaintingGridObject targetGrid;
     public ColorPalleteData colorPalette;
     
@@ -13,15 +14,13 @@ public class PaintingConfigSetup : MonoBehaviour
     public bool useColorFilter = false;
     public List<string> colorCodeInUse = new List<string>();
 
-    [Header("Output Settings")]
-    [SerializeField] private string configAssetPath = "Assets/_Game/Data/";
-    
     [Header("Result")]
-    public PaintingConfig resultPaintingConfig;
+    [ReadOnly] public PaintingConfig ResultPaintingConfig;
 
-    public void SamplePaintingToGrid()
+    public void SamplePaintingToGrid(Sprite _sprite = null)
     {
-        if (targetPainting == null)
+        if (_sprite == null) _sprite = TargetPainting;
+        if (_sprite == null)
         {
             Debug.LogError("TargetPainting sprite is not assigned!");
             return;
@@ -51,7 +50,7 @@ public class PaintingConfigSetup : MonoBehaviour
         }
 
         // Get the texture from the sprite
-        Texture2D paintingTexture = GetTextureFromSprite(targetPainting);
+        Texture2D paintingTexture = GetTextureFromSprite(_sprite);
         if (paintingTexture == null)
         {
             Debug.LogError("Could not get texture from sprite!");
@@ -98,14 +97,14 @@ public class PaintingConfigSetup : MonoBehaviour
                 pixelConfig.column = gridCol;
                 pixelConfig.color = closestColor;
                 pixelConfig.colorCode = colorCode;
-                pixelConfig.Hidden = closestColor.a == 0;
+                pixelConfig.Hidden = colorCode.Equals(TransparentColorKey);
 
                 pixels.Add(pixelConfig);
             }
         }
 
         // Create and configure the PaintingConfig asset
-        CreatePaintingConfigAsset(pixels, gridSize, targetPainting);
+        CreatePaintingConfigAsset(pixels, gridSize, _sprite);
     }
 
     private Texture2D GetTextureFromSprite(Sprite sprite)
@@ -153,7 +152,10 @@ public class PaintingConfigSetup : MonoBehaviour
     private (Color color, string colorCode) FindClosestColorInPalette(Color targetColor, ColorPalleteData palette)
     {
         if (!useColorFilter) return (targetColor, DefaultColorKey);
-        if (targetColor.a == 0) return (targetColor, TransparentColorKey);
+        if (targetColor.a < 1f)
+        {
+            return (targetColor, TransparentColorKey);
+        }
         if (palette.colorPallete.Count == 0)
         {
             Debug.LogWarning("Color palette is empty!");
@@ -242,10 +244,10 @@ public class PaintingConfigSetup : MonoBehaviour
         paintingConfig.Sprite = originalSprite;
 
         // Use the target painting name with "_PaintingConfig" suffix for the asset name
-        string assetName = targetPainting != null ? targetPainting.name + "_PaintingConfig" : "PaintingConfig";
+        string assetName = TargetPainting != null ? TargetPainting.name + "_PaintingConfig" : "PaintingConfig";
         
         // Create the asset file using the specified path and computed name
-        string assetPath = configAssetPath + assetName + ".asset";
+        string assetPath = PaintingConfigPath + assetName + ".asset";
         UnityEditor.AssetDatabase.CreateAsset(paintingConfig, assetPath);
         UnityEditor.AssetDatabase.SaveAssets();
         UnityEditor.AssetDatabase.Refresh();
@@ -253,7 +255,7 @@ public class PaintingConfigSetup : MonoBehaviour
         Debug.Log("PaintingConfig asset created at: " + assetPath);
         
         // Assign the created PaintingConfig to the result field
-        resultPaintingConfig = paintingConfig;
+        ResultPaintingConfig = paintingConfig;
 #else
         Debug.LogWarning("PaintingConfig asset creation is only supported in the Unity Editor.");
 #endif
@@ -264,7 +266,7 @@ public class PaintingConfigSetup : MonoBehaviour
         // If color filtering is not enabled, we can use any color from the palette
         if (!useColorFilter)
         {
-            return targetPainting != null && targetGrid != null && colorPalette != null;
+            return TargetPainting != null && targetGrid != null && colorPalette != null;
         }
         
         // If color filtering is enabled but colorCodeInUse is empty, we can't filter
@@ -282,6 +284,11 @@ public class PaintingConfigSetup : MonoBehaviour
             }
         }
         
-        return targetPainting != null && targetGrid != null && colorPalette != null;
+        return TargetPainting != null && targetGrid != null && colorPalette != null;
+    }
+
+    public void CreateNewPaintingConfig(Sprite _painting, string name = "")
+    {
+
     }
 }

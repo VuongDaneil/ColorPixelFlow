@@ -16,6 +16,7 @@ Material:
   - ANIME_SOFT
   - BASE_SATURATION
   - CUTOUT
+  - MATCAP
   - MATCAP_PERSPECTIVE
   - OUTLINE
   - OUTLINE_WIDTH_INDEPENDENT
@@ -102,7 +103,7 @@ Material:
         m_Scale: {x: 0.5, y: 0.5}
         m_Offset: {x: 0, y: 0}
     - _MatCapTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: a963d58eeb8ba4dcba68a834b536f62a, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -203,7 +204,7 @@ Material:
     - _LightmapBrightness: 1
     - _LightmapUV: 0
     - _MatCapBlend: 0
-    - _MatCapBrightness: 1
+    - _MatCapBrightness: 2.7
     - _MatCapContrast: 1
     - _MatCapPerspective: 1
     - _MatCapStatic: 0

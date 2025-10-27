@@ -10,7 +10,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1a76ac87e09a8a144b9fd971feadeed6, type: 3}
-  m_Name: LevelColorCollectorsConfig
+  m_Name: A_Ricecooker_CollectorsConfig
   m_EditorClassIdentifier: 
-  CollectorSetups: []
-  NumberOfColumns: 0
+  CollectorColumns: []

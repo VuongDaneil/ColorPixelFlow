@@ -120,7 +120,7 @@ public class WallObjectConfigSetup : MonoBehaviour
     /// <param name="startPixel">Start pixel (head)</param>
     /// <param name="endPixel">End pixel (tail)</param>
     /// <returns>True if wall orientation is valid, false otherwise</returns>
-    private bool IsValidWallOrientation(List<PaintingPixelComponent> _wallPixels)
+    public bool IsValidWallOrientation(List<PaintingPixelComponent> _wallPixels)
     {
         if (_wallPixels == null || _wallPixels.Count == 0)
             return false;

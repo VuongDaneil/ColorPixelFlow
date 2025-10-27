@@ -149,7 +149,7 @@ Material:
     - _AnimeThreshold1: 0.45
     - _AnimeThreshold2: 0.85
     - _BlendOp: 0
-    - _Brightness: 10.8
+    - _Brightness: 2
     - _BumpScale: 1
     - _CameraFadeEnd: 0
     - _CameraFadeStart: 0

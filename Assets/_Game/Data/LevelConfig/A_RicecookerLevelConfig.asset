@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00a0a583a41b086428c8dd0aa929acf8, type: 3}
+  m_Name: A_RicecookerLevelConfig
+  m_EditorClassIdentifier: 
+  BlocksPaintingConfig: {fileID: 11400000, guid: 4c34bbecd9ec46641af1d5103e556011, type: 2}
+  CollectorsConfig: {fileID: 11400000, guid: 6bab76695cd0063458eff46660e4be28, type: 2}

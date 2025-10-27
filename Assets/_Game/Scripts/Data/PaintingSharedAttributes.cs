@@ -8,6 +8,10 @@ public static class PaintingSharedAttributes
     public static string DefaultColorKey = "DefaultColor";
     public static string TransparentColorKey = "TransparentColor";
 
+    public static string LevelConfigPath = "Assets/_Game/Data/LevelConfig/";
+    public static string CollectorsConfigPath = "Assets/_Game/Data/GunnerConfig/";
+    public static string PaintingConfigPath = "Assets/_Game/Data/PaintingConfig/";
+
     public static void MoveRelative<T>(List<T> list, T itemToMove, T targetItem, bool higher)
     {
         if (list == null || itemToMove == null || targetItem == null)

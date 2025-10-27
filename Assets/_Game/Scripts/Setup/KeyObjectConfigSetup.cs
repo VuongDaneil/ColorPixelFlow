@@ -93,7 +93,36 @@ public class KeyObjectConfigSetup : MonoBehaviour
         }
     }
 
+    public void CreateKey(List<PaintingPixelComponent> _keyPixels)
+    {
+        if (_keyPixels == null || _keyPixels.Count <= 0)
+        {
+            Debug.LogWarning("_keyPixels is not valid. Cannot create key.");
+            return;
+        }
 
+        // Validate that the key should be straight (horizontal or vertical)
+        if (!IsValidKeyOrientation(_keyPixels))
+        {
+            Debug.LogWarning("Key must be either horizontal (same row) or vertical (same column). Cannot create key.");
+            return;
+        }
+
+        // Create and setup the key in the scene - this will also create the key pixels
+        List<PaintingPixelConfig> keyPixelConfigs = new List<PaintingPixelConfig>();
+        foreach (var pixelComponent in _keyPixels)
+        {
+            keyPixelConfigs.Add(new PaintingPixelConfig(pixelComponent.PixelData));
+        }
+        KeyObjectSetup keySetup = new KeyObjectSetup(keyPixelConfigs);
+
+        var newKeyObject = SetupNewKeyInScene(keySetup);
+
+        if (newKeyObject != null)
+        {
+            AddKeySetup(keySetup);
+        }
+    }
 
     /// <summary>
     /// Set up the actual key object in the scene
@@ -115,7 +144,7 @@ public class KeyObjectConfigSetup : MonoBehaviour
     /// <param name="startPixel">Start pixel (head)</param>
     /// <param name="endPixel">End pixel (tail)</param>
     /// <returns>True if pipe orientation is valid, false otherwise</returns>
-    private bool IsValidKeyOrientation(List<PaintingPixelComponent> _keyPixels)
+    public bool IsValidKeyOrientation(List<PaintingPixelComponent> _keyPixels)
     {
         if (_keyPixels == null || _keyPixels.Count == 0)
             return false;

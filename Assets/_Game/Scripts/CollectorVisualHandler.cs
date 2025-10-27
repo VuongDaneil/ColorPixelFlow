@@ -17,10 +17,13 @@ public class CollectorVisualHandler : MonoBehaviour
     public SpriteRenderer LockSpriteRenderer;
 
     [Header("Object: HIDDEN")]
+    public SpriteRenderer QuestionMarkSpriteRenderer;
     public Material OriginalMat;
     public Material HiddenMat;
 
     public Color CurrentColor;
+
+    private bool hidden = false;
 
     /// <summary>
     /// Change the color of the pipe part using MaterialPropertyBlock
@@ -69,6 +72,7 @@ public class CollectorVisualHandler : MonoBehaviour
 
     public void RefreshColor()
     {
+        if (hidden) return;
         if (CurrentColor != null)
         {
             SetMeshColor(CurrentColor);
@@ -83,15 +87,20 @@ public class CollectorVisualHandler : MonoBehaviour
     #endregion
 
     #region _hidden
-    public void SetHiddenState(bool hidden)
+    public void SetHiddenState(bool _hidden)
     {
-        if (hidden)
+        hidden = _hidden;
+        QuestionMarkSpriteRenderer.enabled = _hidden;
+        if (_hidden)
         {
+            MaterialPropertyBlock materialPropertyBlock = new MaterialPropertyBlock();
+            materialPropertyBlock.SetColor("_Color", Color.white);
             foreach (Renderer renderer in GunnerRenderers)
             {
                 if (renderer != null)
                 {
                     renderer.material = HiddenMat;
+                    renderer.SetPropertyBlock(materialPropertyBlock);
                 }
             }
         }

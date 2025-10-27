@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 
 [CreateAssetMenu(fileName = "PaintingConfig", menuName = "ScriptableObjects/PaintingConfig", order = 1)]
 public class PaintingConfig : ScriptableObject
@@ -93,5 +94,67 @@ public class PaintingConfig : ScriptableObject
                 pixelConfig.Hidden = true;
             }
         }
+    }
+
+    public List<PaintingPixelConfig> GetAllWorkingPixels()
+    {
+        List<PaintingPixelConfig> allPixels = new List<PaintingPixelConfig>();
+
+        // Add pixels from PaintingConfig.Pixels (convert from PaintingPixelConfig to PaintingPixel)
+        foreach (var pixelConfig in Pixels)
+        {
+            if (pixelConfig.Hidden) continue;
+            allPixels.Add(pixelConfig);
+        }
+
+        // Add pixels from PipeSetups.PixelCovered
+        foreach (var pipeSetup in PipeSetups)
+        {
+            foreach (var pixel in pipeSetup.PixelCovered)
+            {
+                if (allPixels.Any(x => (x.column == pixel.column && x.row == pixel.row)))
+                {
+                    allPixels.Remove(allPixels.First(x => (x.column == pixel.column && x.row == pixel.row)));
+                }
+                allPixels.Add(pixel);
+            }
+        }
+
+        // Add pixels from PipeSetups.WallSetups
+        foreach (var wallSetup in WallSetups)
+        {
+            int pixelCoveredCount = wallSetup.PixelCovered.Count;
+
+            foreach (PaintingPixelConfig _p in wallSetup.PixelCovered)
+            {
+                if (allPixels.Any(x => (x.column == _p.column && x.row == _p.row)))
+                {
+                    allPixels.Remove(allPixels.First(x => (x.column == _p.column && x.row == _p.row)));
+                }
+            }
+
+            for (int i = 0; i < wallSetup.Hearts; i++)
+            {
+                PaintingPixelConfig _new = new PaintingPixelConfig(wallSetup.PixelCovered[i % (pixelCoveredCount - 1)]);
+                _new.colorCode = wallSetup.ColorCode;
+                allPixels.Add(_new);
+            }
+        }
+
+        // Add pixels from PipeSetups.KeySetups
+        foreach (var keySetup in KeySetups)
+        {
+            int pixelCoveredCount = keySetup.PixelCovered.Count;
+
+            foreach (PaintingPixelConfig _p in keySetup.PixelCovered)
+            {
+                if (allPixels.Any(x => (x.column == _p.column && x.row == _p.row)))
+                {
+                    allPixels.Remove(allPixels.First(x => (x.column == _p.column && x.row == _p.row)));
+                }
+                allPixels.Add(_p);
+            }
+        }
+        return allPixels;
     }
 }

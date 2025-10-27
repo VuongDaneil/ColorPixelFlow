@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NaughtyAttributes;
 using Unity.VisualScripting;
 using Unity.VisualScripting.FullSerializer;
 using UnityEditor;
@@ -12,7 +13,7 @@ public class LevelCollectorsSystem : MonoBehaviour
     #region PROPERTIES
     [Header("Configuration")]
     public ColorPalleteData ColorPalette; // The color source that collector will get color from by using colorCode
-    public LevelColorCollectorsConfig CurrentLevelCollectorsConfig; // Current level config
+    [ReadOnly] public LevelColorCollectorsConfig CurrentLevelCollectorsConfig; // Current level config
     
     [Header("Formation Settings")]
     public Transform FormationCenter; // Center of the formation, formation's columns will aligns to this center
@@ -38,15 +39,17 @@ public class LevelCollectorsSystem : MonoBehaviour
     {
         GUIStyle style = new GUIStyle();
         style.normal.textColor = Color.yellow;
-        //style.fontStyle = FontStyle.Bold;
+        style.fontStyle = FontStyle.Bold;
+        style.alignment = TextAnchor.MiddleLeft;
 
         if (CurrentCollectors.Count > 0)
         {
             for (int i = 0; i < CurrentCollectors.Count; i++)
             {
                 if (CurrentCollectors[i] == null) continue;
-                Vector3 labelPos = CurrentCollectors[i].transform.position + CurrentCollectors[i].transform.up * 1.5f;
-                Handles.Label(labelPos, i.ToString() + $"({CurrentCollectors[i].BulletCapacity})", style);
+                Vector3 labelPos = CurrentCollectors[i].transform.position + CurrentCollectors[i].transform.right * 0.5f;
+                //Handles.Label(labelPos, i.ToString() + $"({CurrentCollectors[i].BulletCapacity})", style);
+                Handles.Label(labelPos, $"({CurrentCollectors[i].BulletCapacity})", style);
             }
         }
     }

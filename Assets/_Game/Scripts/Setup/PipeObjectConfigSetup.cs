@@ -276,7 +276,7 @@ public class PipeObjectConfigSetup : MonoBehaviour
     /// <param name="startPixel">Start pixel (head)</param>
     /// <param name="endPixel">End pixel (tail)</param>
     /// <returns>True if pipe orientation is valid, false otherwise</returns>
-    private bool IsValidPipeOrientation(PaintingPixel startPixel, PaintingPixel endPixel)
+    public bool IsValidPipeOrientation(PaintingPixel startPixel, PaintingPixel endPixel)
     {
         return (startPixel.row == endPixel.row) || (startPixel.column == endPixel.column);
     }

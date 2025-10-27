@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using NaughtyAttributes;
 using UnityEngine;
 using System.Linq;
+using UnityEngine.UI;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -12,8 +14,8 @@ using System.IO;
 public class LevelCollectorsConfigSetup : MonoBehaviour
 {
     [Header("Configuration")]
-    public LevelColorCollectorsConfig configAsset; // The config asset to set up
-    public PaintingConfig paintingConfig;
+    [ReadOnly] public LevelColorCollectorsConfig configAsset; // The config asset to set up
+    [ReadOnly] public PaintingConfig paintingConfig;
 
     [Header("Setup Parameters")]
     public int NumberOfColumns = 3; // Number of columns to arrange collectors in
@@ -31,6 +33,11 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
     public LayerMask CollectorObjectLayerMask;
     public float CollisionRadius;
     [ShowIf("ToolActive")] public List<Vector3> OriginalCollectorPosition = new List<Vector3>();
+    public int NumberOfWorkingPixels = 0;
+    public int TotalBulletsCount = 0;
+    public int NumberOfLockedCollector = 0;
+    public Dictionary<string, int> colorSetCounters = new Dictionary<string, int>();
+    public Dictionary<string, int> collectorSetCounters = new Dictionary<string, int>();
 
     [Header("TOOL MODULE(s)")]
     public MoveCollector MoveModule;
@@ -40,8 +47,12 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
     public ConnectCollectors ConnectModule;
 
 #if UNITY_EDITOR
-    public LevelColorCollectorsConfig CreateConfigAsset(string configName, string path = "Assets/Resources/")
+    public LevelColorCollectorsConfig CreateConfigAsset(string configName, string path = null)
     {
+        if (string.IsNullOrEmpty(path))
+        {
+            path = CollectorsConfigPath;
+        }
         if (string.IsNullOrEmpty(configName))
         {
             Debug.LogError("Config name cannot be empty!");
@@ -210,74 +221,93 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         configAsset.CollectorColumns.Clear();
 
         // Collect all pixels from painting config (PaintingConfig.Pixels) and from pipe setups (PixelCovered)
+        List<PaintingPixelConfig> allWorkingPixels = paintingConfig.GetAllWorkingPixels();
         List<PaintingPixel> allPixels = new List<PaintingPixel>();
 
-        // Add pixels from PaintingConfig.Pixels (convert from PaintingPixelConfig to PaintingPixel)
-        foreach (var pixelConfig in paintingConfig.Pixels)
+        for (int i = 0; i < allWorkingPixels.Count; i++)
         {
-            if (pixelConfig.Hidden) continue;
+            PaintingPixelConfig pConfig = allWorkingPixels[i];
             PaintingPixel pixel = new PaintingPixel
             {
-                column = pixelConfig.column,
-                row = pixelConfig.row,
-                color = pixelConfig.color,
-                colorCode = pixelConfig.colorCode,
+                column = pConfig.column,
+                row = pConfig.row,
+                color = pConfig.color,
+                colorCode = pConfig.colorCode,
                 Hearts = 1, // Default to 1 heart if not specified in config
-                Hidden = pixelConfig.Hidden
+                Hidden = pConfig.Hidden
             };
             allPixels.Add(pixel);
         }
 
-        // Add pixels from PipeSetups.PixelCovered
-        foreach (var pipeSetup in paintingConfig.PipeSetups)
+        if (false)
         {
-            foreach(var pixel in pipeSetup.PixelCovered)
+            // Add pixels from PaintingConfig.Pixels (convert from PaintingPixelConfig to PaintingPixel)
+            foreach (var pixelConfig in paintingConfig.Pixels)
             {
-                PaintingPixel _new = new PaintingPixel(pixel);
-                if (allPixels.Any(x => (x.column == _new.column && x.row == _new.row)))
+                if (pixelConfig.Hidden) continue;
+                PaintingPixel pixel = new PaintingPixel
                 {
-                    allPixels.Remove(allPixels.First(x => (x.column == _new.column && x.row == _new.row)));
+                    column = pixelConfig.column,
+                    row = pixelConfig.row,
+                    color = pixelConfig.color,
+                    colorCode = pixelConfig.colorCode,
+                    Hearts = 1, // Default to 1 heart if not specified in config
+                    Hidden = pixelConfig.Hidden
+                };
+                allPixels.Add(pixel);
+            }
+
+            // Add pixels from PipeSetups.PixelCovered
+            foreach (var pipeSetup in paintingConfig.PipeSetups)
+            {
+                foreach (var pixel in pipeSetup.PixelCovered)
+                {
+                    PaintingPixel _new = new PaintingPixel(pixel);
+                    if (allPixels.Any(x => (x.column == _new.column && x.row == _new.row)))
+                    {
+                        allPixels.Remove(allPixels.First(x => (x.column == _new.column && x.row == _new.row)));
+                    }
+                    allPixels.Add(_new);
                 }
+            }
+
+            // Add pixels from PipeSetups.WallSetups
+            foreach (var wallSetup in paintingConfig.WallSetups)
+            {
+                int pixelCoveredCount = wallSetup.PixelCovered.Count;
+
+                foreach (PaintingPixelConfig _p in wallSetup.PixelCovered)
+                {
+                    if (allPixels.Any(x => (x.column == _p.column && x.row == _p.row)))
+                    {
+                        allPixels.Remove(allPixels.First(x => (x.column == _p.column && x.row == _p.row)));
+                    }
+                }
+
+                for (int i = 0; i < wallSetup.Hearts; i++)
+                {
+                    PaintingPixel _new = new PaintingPixel(wallSetup.PixelCovered[i % (pixelCoveredCount - 1)]);
+                    _new.colorCode = wallSetup.ColorCode;
+                    allPixels.Add(_new);
+                }
+            }
+
+            // Add pixels from PipeSetups.KeySetups
+            foreach (var keySetup in paintingConfig.KeySetups)
+            {
+                int pixelCoveredCount = keySetup.PixelCovered.Count;
+
+                foreach (PaintingPixelConfig _p in keySetup.PixelCovered)
+                {
+                    if (allPixels.Any(x => (x.column == _p.column && x.row == _p.row)))
+                    {
+                        allPixels.Remove(allPixels.First(x => (x.column == _p.column && x.row == _p.row)));
+                    }
+                }
+
+                PaintingPixel _new = new PaintingPixel(keySetup.PixelCovered[Random.Range(0, pixelCoveredCount)]);
                 allPixels.Add(_new);
             }
-        }
-
-        // Add pixels from PipeSetups.WallSetups
-        foreach (var wallSetup in paintingConfig.WallSetups)
-        {
-            int pixelCoveredCount = wallSetup.PixelCovered.Count;
-
-            foreach (PaintingPixelConfig _p in wallSetup.PixelCovered)
-            {
-                if (allPixels.Any(x => (x.column == _p.column && x.row == _p.row)))
-                {
-                    allPixels.Remove(allPixels.First(x => (x.column == _p.column && x.row == _p.row)));
-                }
-            }
-
-            for (int i = 0; i < wallSetup.Hearts; i++)
-            {
-                PaintingPixel _new = new PaintingPixel(wallSetup.PixelCovered[i % (pixelCoveredCount - 1)]);
-                _new.colorCode = wallSetup.ColorCode;
-                allPixels.Add(_new);
-            }
-        }
-
-        // Add pixels from PipeSetups.KeySetups
-        foreach (var keySetup in paintingConfig.KeySetups)
-        {
-            int pixelCoveredCount = keySetup.PixelCovered.Count;
-
-            foreach (PaintingPixelConfig _p in keySetup.PixelCovered)
-            {
-                if (allPixels.Any(x => (x.column == _p.column && x.row == _p.row)))
-                {
-                    allPixels.Remove(allPixels.First(x => (x.column == _p.column && x.row == _p.row)));
-                }
-            }
-
-            PaintingPixel _new = new PaintingPixel(keySetup.PixelCovered[Random.Range(0, pixelCoveredCount)]);
-            allPixels.Add(_new);
         }
 
         // Group pixels by outline based on painting size
@@ -562,6 +592,24 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         ToolActive = !ToolActive;
         if (ToolActive)
         {
+            List<PaintingPixelConfig> allWorkingPixels = paintingConfig.GetAllWorkingPixels();
+            NumberOfWorkingPixels = allWorkingPixels.Count;
+            colorSetCounters.Clear();
+            foreach (var pixel in allWorkingPixels)
+            {
+                if (pixel.Hidden) continue; // Skip hidden pixels
+                if (colorSetCounters.ContainsKey(pixel.colorCode))
+                {
+                    colorSetCounters[pixel.colorCode]++;
+                }
+                else
+                {
+                    colorSetCounters[pixel.colorCode] = 1;
+                }
+            }
+
+            ReCountCollectors();
+
             LoadConfigAsset(configAsset);
         }
     }
@@ -578,6 +626,25 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         for (int i = 0; i < previewSystem.CurrentCollectors.Count; i++)
         {
             previewSystem.CurrentCollectors[i].transform.position = OriginalCollectorPosition[i];
+        }
+    }
+    public void ReCountCollectors()
+    {
+        TotalBulletsCount = 0;
+        NumberOfLockedCollector = 0;
+        collectorSetCounters.Clear();
+        foreach (var collector in previewSystem.CurrentCollectors)
+        {
+            if (collectorSetCounters.ContainsKey(collector.CollectorColor))
+            {
+                collectorSetCounters[collector.CollectorColor]++;
+            }
+            else
+            {
+                collectorSetCounters[collector.CollectorColor] = 1;
+            }
+            TotalBulletsCount += collector.BulletCapacity;
+            if (collector.IsLocked) NumberOfLockedCollector++;
         }
     }
     #endregion

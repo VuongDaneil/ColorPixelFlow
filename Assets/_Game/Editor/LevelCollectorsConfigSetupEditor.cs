@@ -1,14 +1,11 @@
-﻿using FluffyUnderware.DevToolsEditor;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
+using static PaintingSharedAttributes;
 
 [CustomEditor(typeof(LevelCollectorsConfigSetup))]
 public class LevelCollectorsConfigSetupEditor : Editor
 {
     private string newConfigName = "CollectorsConfig";
-    private string newConfigPath = "Assets/_Game/Data/GunnerConfig/";
 
     LevelCollectorsConfigSetup manager;
     public ColorPixelsCollectorObject SelectedItem;
@@ -20,10 +17,13 @@ public class LevelCollectorsConfigSetupEditor : Editor
     private static bool[] checkboxes = new bool[2];
     private static readonly string[] checkBoxlabels = { "Lock", "Hide"};
 
+    private bool debug = false;
+
     private void OnEnable()
     {
         manager = (LevelCollectorsConfigSetup)target;
         manager.ToolActive = false;
+        debug = false;
     }
 
     private void OnDisable()
@@ -40,14 +40,13 @@ public class LevelCollectorsConfigSetupEditor : Editor
         #region _inspector
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Create New Config Asset:", EditorStyles.boldLabel);
-        newConfigPath = EditorGUILayout.TextField("Path", newConfigPath);
 
         if (GUILayout.Button("Create Config Asset"))
         {
             if (manager != null)
             {
                 if (manager.paintingConfig != null) newConfigName = manager.paintingConfig.name.Replace("_PaintingConfig", "") + "_CollectorsConfig";
-                LevelColorCollectorsConfig newConfig = manager.CreateConfigAsset(newConfigName, newConfigPath);
+                LevelColorCollectorsConfig newConfig = manager.CreateConfigAsset(newConfigName, CollectorsConfigPath);
                 if (newConfig != null)
                 {
                     manager.configAsset = newConfig;
@@ -133,6 +132,7 @@ public class LevelCollectorsConfigSetupEditor : Editor
     {
         if (!manager.ToolActive) return;
         ShowToolToggles();
+        if (debug) ShowLevelInfomations();
         if (SelectedItem != null)
         {
             ShowCollectorOptionsCheckBox();
@@ -185,13 +185,17 @@ public class LevelCollectorsConfigSetupEditor : Editor
                 switch (selectedMode)
                 {
                     case 0: if(hasSelectedItem && hasCollidedItem) manager.MoveModule.Move(SelectedItem, CollidedItem); break;
-                    case 1: if (hasSelectedItem && hasCollidedItem) manager.SwapModule.Swap(SelectedItem, CollidedItem); break;
+                    case 1: if (hasSelectedItem && hasCollidedItem)
+                        {
+                            manager.SwapModule.Swap(SelectedItem, CollidedItem);
+                        } break;
                     case 2: if (hasSelectedItem && hasCollidedItem) manager.CombineModule.Combine(SelectedItem, CollidedItem); break;
                     case 3: if (hasSelectedItem) manager.SplitModule.Split(SelectedItem); break;
                     case 4: if (hasSelectedItem && hasCollidedItem) manager.ConnectModule.Connect(SelectedItem, CollidedItem); break;
                 }
                 SelectedItem = null;
                 CollidedItem = null;
+                manager.ReCountCollectors();
             }
             firstClicked = false;
             manager.ReApplyCollectorsPosition();
@@ -212,8 +216,6 @@ public class LevelCollectorsConfigSetupEditor : Editor
                 Handles.color = Color.red;
                 Handles.DrawLine(current.transform.position, other.transform.position);
                 Debug.Log($"Collision between {current.name} and {other.name}");
-
-                if (current.TryGetComponent<Renderer>(out var rend)) rend.sharedMaterial.color = Color.red;
             }
         }
     }
@@ -222,14 +224,22 @@ public class LevelCollectorsConfigSetupEditor : Editor
     {
         Handles.BeginGUI();
 
-        float width = 300f;
+        float width = 355f;
         float height = 50f;
         float x = (SceneView.currentDrawingSceneView.position.width - width);  // right align
-        float y = SceneView.currentDrawingSceneView.position.height - height - 20f;   // cách đáy 20px
+        float y = SceneView.currentDrawingSceneView.position.height - height - 20f;
 
         GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
 
         GUILayout.BeginHorizontal();
+
+        Color color = GUI.backgroundColor;
+        GUI.backgroundColor = Color.yellow;
+        if (GUILayout.Button("CHECK", GUILayout.Width(55), GUILayout.Height(30)))
+        {
+            debug = !debug;
+        }
+        GUI.backgroundColor = color;
 
         for (int i = 0; i < labels.Length; i++)
         {
@@ -254,7 +264,7 @@ public class LevelCollectorsConfigSetupEditor : Editor
         float width = 300f;
         float height = 50f;
         float x = (SceneView.currentDrawingSceneView.position.width - width);  // right align
-        float y = SceneView.currentDrawingSceneView.position.height - height - 90f;   // cách đáy 20px
+        float y = SceneView.currentDrawingSceneView.position.height - height - 90f;
 
         Handles.BeginGUI();
 
@@ -305,5 +315,48 @@ public class LevelCollectorsConfigSetupEditor : Editor
         GUILayout.EndArea();
 
         GUI.backgroundColor = oldColor;
+    }
+
+    private void ShowLevelInfomations()
+    {
+        float width = 220f;
+        float height = 410f;
+        float x = (SceneView.currentDrawingSceneView.position.width - width);  // right align
+        float y = SceneView.currentDrawingSceneView.position.height - height - 150f;
+
+        Handles.BeginGUI();
+        //GUI.backgroundColor = new Color(0.3f, 0.7f, 1f, 1f);
+        GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
+
+        string levelName = manager.paintingConfig != null ? manager.paintingConfig.name : "No Painting Config Assigned";
+        GUILayout.Label(levelName, EditorStyles.boldLabel);
+        GUILayout.Space(10);
+        GUILayout.Label("=> TOTAL BLOCKS: " + manager.NumberOfWorkingPixels, EditorStyles.boldLabel);
+        GUILayout.Space(5);
+        Color oldColor = GUI.color;
+        foreach (var colorSet in manager.colorSetCounters)
+        {
+            GUI.color = manager.previewSystem.ColorPalette.GetColorByCode(colorSet.Key);
+            GUILayout.Label( $"         {colorSet.Key} - {colorSet.Value} blocks", EditorStyles.boldLabel);
+        }
+        GUI.color = oldColor;
+
+        GUILayout.Space(10);
+        GUILayout.Label("=> TOTAL GUNNERS: " + manager.previewSystem.CurrentCollectors.Count, EditorStyles.boldLabel);
+        GUILayout.Space(5);
+        foreach (var colorSet in manager.collectorSetCounters)
+        {
+            GUI.color = manager.previewSystem.ColorPalette.GetColorByCode(colorSet.Key);
+            GUILayout.Label($"         {colorSet.Key} - {colorSet.Value} gunners", EditorStyles.boldLabel);
+        }
+        GUI.color = oldColor;
+
+        GUILayout.Space(10);
+        GUILayout.Label($"=> BLOCKS / BULLETS:  {manager.NumberOfWorkingPixels} / {manager.TotalBulletsCount}", EditorStyles.boldLabel);
+        
+        GUILayout.Space(10);
+        GUILayout.Label($"=> LOCKS / KEYS:  {manager.paintingConfig.KeySetups.Count} / {manager.NumberOfLockedCollector}", EditorStyles.boldLabel);
+
+        GUILayout.EndArea();
     }
 }

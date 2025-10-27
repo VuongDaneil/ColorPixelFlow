@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using System;
+using NaughtyAttributes;
 
 [System.Serializable]
 public class IntPixelListPair
@@ -56,7 +57,7 @@ public class PaintingGridObject : MonoBehaviour
     public GameObject pixelPrefab;
     
     [Header("Painting Configuration")]
-    public PaintingConfig paintingConfig;
+    [ReadOnly] public PaintingConfig paintingConfig;
     
     [Header("Color Variation")]
     [Range(0.0f, 1.0f)]

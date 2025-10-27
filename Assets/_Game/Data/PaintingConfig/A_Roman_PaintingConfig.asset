@@ -69,22 +69,22 @@ MonoBehaviour:
     row: -15
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 1
+    Hidden: 0
   - column: 3
     row: -15
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 1
+    Hidden: 0
   - column: 2
     row: -15
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 1
+    Hidden: 0
   - column: 1
     row: -15
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 1
+    Hidden: 0
   - column: 0
     row: -15
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -114,47 +114,47 @@ MonoBehaviour:
     row: -15
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 1
+    Hidden: 0
   - column: -6
     row: -15
     color: {r: 0.84313726, g: 0.5764706, b: 0.41568628, a: 1}
     colorCode: Brown4
-    Hidden: 1
+    Hidden: 0
   - column: -7
     row: -15
     color: {r: 0.84313726, g: 0.5764706, b: 0.41568628, a: 1}
     colorCode: Brown4
-    Hidden: 1
+    Hidden: 0
   - column: -8
     row: -15
     color: {r: 0.84313726, g: 0.5764706, b: 0.41568628, a: 1}
     colorCode: Brown4
-    Hidden: 1
+    Hidden: 0
   - column: -9
     row: -15
     color: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 1}
     colorCode: Black
-    Hidden: 1
+    Hidden: 0
   - column: -10
     row: -15
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 1
+    Hidden: 0
   - column: -11
     row: -15
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: -12
     row: -15
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: -13
     row: -15
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: -14
     row: -15
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
@@ -2569,7 +2569,7 @@ MonoBehaviour:
     row: 2
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 2
     color: {r: 0.9490196, g: 0.76862746, b: 0, a: 1}
@@ -2719,7 +2719,7 @@ MonoBehaviour:
     row: 3
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 3
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
@@ -2869,7 +2869,7 @@ MonoBehaviour:
     row: 4
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 4
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
@@ -3019,7 +3019,7 @@ MonoBehaviour:
     row: 5
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 5
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
@@ -3169,7 +3169,7 @@ MonoBehaviour:
     row: 6
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 6
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
@@ -3319,7 +3319,7 @@ MonoBehaviour:
     row: 7
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 7
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
@@ -3469,7 +3469,7 @@ MonoBehaviour:
     row: 8
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
     colorCode: Blue3
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 8
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
@@ -3619,7 +3619,7 @@ MonoBehaviour:
     row: 9
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
     colorCode: Blue3
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 9
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
@@ -3679,42 +3679,42 @@ MonoBehaviour:
     row: 9
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: 1
     row: 9
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: 0
     row: 9
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: -1
     row: 9
     color: {r: 0.9490196, g: 0.76862746, b: 0, a: 1}
     colorCode: Yellow3
-    Hidden: 1
+    Hidden: 0
   - column: -2
     row: 9
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: -3
     row: 9
     color: {r: 0.9490196, g: 0.76862746, b: 0, a: 1}
     colorCode: Yellow3
-    Hidden: 1
+    Hidden: 0
   - column: -4
     row: 9
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: -5
     row: 9
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: -6
     row: 9
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -3769,7 +3769,7 @@ MonoBehaviour:
     row: 10
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
     colorCode: Blue3
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 10
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
@@ -3919,7 +3919,7 @@ MonoBehaviour:
     row: 11
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
     colorCode: Blue3
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 11
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
@@ -4069,7 +4069,7 @@ MonoBehaviour:
     row: 12
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 12
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
@@ -4219,7 +4219,7 @@ MonoBehaviour:
     row: 13
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 13
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
@@ -4369,7 +4369,7 @@ MonoBehaviour:
     row: 14
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 1
+    Hidden: 0
   - column: 13
     row: 14
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
@@ -4515,225 +4515,6 @@ MonoBehaviour:
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
     Hidden: 0
-  _pipeSetups:
-  - PixelCovered:
-    - column: -5
-      row: 9
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: -4
-      row: 9
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: -3
-      row: 9
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: -2
-      row: 9
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: -1
-      row: 9
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 0
-      row: 9
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 1
-      row: 9
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 2
-      row: 9
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    ColorCode: Green2
-    Scale: {x: 1, y: 1, z: 1}
-  - PixelCovered:
-    - column: 15
-      row: -9
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 15
-      row: -10
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 15
-      row: -11
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 15
-      row: -12
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 15
-      row: -13
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 15
-      row: -14
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 15
-      row: -15
-      color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    ColorCode: Green2
-    Scale: {x: 1, y: 1, z: 1}
-  - PixelCovered:
-    - column: -13
-      row: -15
-      color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    - column: -12
-      row: -15
-      color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    - column: -11
-      row: -15
-      color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    - column: -10
-      row: -15
-      color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    - column: -9
-      row: -15
-      color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    - column: -8
-      row: -15
-      color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    - column: -7
-      row: -15
-      color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    - column: -6
-      row: -15
-      color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    - column: -5
-      row: -15
-      color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    ColorCode: Blue3
-    Scale: {x: 1, y: 1, z: 1}
-  _wallSetups:
-  - Hearts: 10
-    PixelCovered:
-    - column: 9
-      row: -5
-      color: {r: 0.11141186, g: 0.6669763, b: 0.2863155, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 9
-      row: -4
-      color: {r: 0.22724967, g: 0.48790684, b: 0.8305399, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    - column: 9
-      row: -3
-      color: {r: 0.1891099, g: 0.49608743, b: 0.8016446, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    - column: 9
-      row: -2
-      color: {r: 0.18737258, g: 0.47866496, b: 0.794449, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    - column: 8
-      row: -5
-      color: {r: 0.12096855, g: 0.67477775, b: 0.2800482, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 8
-      row: -4
-      color: {r: 0.11619997, g: 0.6885587, b: 0.27320635, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 8
-      row: -3
-      color: {r: 0.20276982, g: 0.48120356, b: 0.82069975, a: 1}
-      colorCode: Blue3
-      Hidden: 0
-    - column: 8
-      row: -2
-      color: {r: 0.100205265, g: 0.6717336, b: 0.29182354, a: 1}
-      colorCode: Green2
-      Hidden: 0
-    - column: 7
-      row: -5
-      color: {r: 0.99866724, g: 0.82173234, b: 0.62909776, a: 1}
-      colorCode: Orange5
-      Hidden: 0
-    - column: 7
-      row: -4
-      color: {r: 1, g: 0.8313314, b: 0.61627114, a: 1}
-      colorCode: Orange5
-      Hidden: 0
-    - column: 7
-      row: -3
-      color: {r: 1, g: 0.8384503, b: 0.59969854, a: 1}
-      colorCode: Orange5
-      Hidden: 0
-    - column: 7
-      row: -2
-      color: {r: 0.9848037, g: 0.79847103, b: 0.62106675, a: 1}
-      colorCode: Orange5
-      Hidden: 0
-    ColorCode: Green2
-  _keySetups:
-  - PixelCovered:
-    - column: 5
-      row: -11
-      color: {r: 0.9938897, g: 0.805102, b: 0.6350796, a: 1}
-      colorCode: Orange5
-      Hidden: 0
-    - column: 5
-      row: -10
-      color: {r: 0.9892298, g: 0.8311156, b: 0.61369026, a: 1}
-      colorCode: Orange5
-      Hidden: 0
-    - column: 4
-      row: -11
-      color: {r: 0.99045444, g: 0.7999665, b: 0.6334527, a: 1}
-      colorCode: Orange5
-      Hidden: 0
-    - column: 4
-      row: -10
-      color: {r: 0.99088925, g: 0.8399757, b: 0.64028114, a: 1}
-      colorCode: Orange5
-      Hidden: 0
-  - PixelCovered:
-    - column: -14
-      row: 8
-      color: {r: 0.12922418, g: 0.67297, b: 0.26280472, a: 1}
-      colorCode: Green2
-      Hidden: 0
+  _pipeSetups: []
+  _wallSetups: []
+  _keySetups: []

@@ -10,7 +10,14 @@ public class PaintingPixelConfig
     public bool Hidden;
 
     public PaintingPixelConfig() { }
-
+    public PaintingPixelConfig(PaintingPixelConfig _pixelObj)
+    {
+        column = _pixelObj.column;
+        row = _pixelObj.row;
+        color = _pixelObj.color;
+        colorCode = _pixelObj.colorCode;
+        Hidden = _pixelObj.Hidden;
+    }
     public PaintingPixelConfig(PaintingPixel _pixelObj)
     {
         column = _pixelObj.column;

@@ -11,10 +11,7 @@ public class PaintingConfigSetupEditor : Editor
 
         PaintingConfigSetup setup = (PaintingConfigSetup)target;
 
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Input Settings", EditorStyles.boldLabel);
-        
-        SerializedProperty targetPaintingProp = serializedObject.FindProperty("targetPainting");
+        SerializedProperty targetPaintingProp = serializedObject.FindProperty("TargetPainting");
         EditorGUILayout.PropertyField(targetPaintingProp, new GUIContent("Target Painting", "The original painting sprite to sample colors from"));
         
         SerializedProperty targetGridProp = serializedObject.FindProperty("targetGrid");
@@ -35,12 +32,6 @@ public class PaintingConfigSetupEditor : Editor
         {
             EditorGUILayout.PropertyField(colorCodeInUseProp, new GUIContent("Color Codes In Use", "Only colors with codes in this list will be used"), true);
         }
-        
-        EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Output Settings", EditorStyles.boldLabel);
-        
-        SerializedProperty configAssetPathProp = serializedObject.FindProperty("configAssetPath");
-        EditorGUILayout.PropertyField(configAssetPathProp, new GUIContent("Config Asset Path", "The path where the PaintingConfig asset will be saved"));
 
         serializedObject.ApplyModifiedProperties();
 
@@ -67,7 +58,7 @@ public class PaintingConfigSetupEditor : Editor
         // Display the result painting config
         EditorGUILayout.Space();
         EditorGUILayout.LabelField("Result", EditorStyles.boldLabel);
-        SerializedProperty resultPaintingConfigProp = serializedObject.FindProperty("resultPaintingConfig");
+        SerializedProperty resultPaintingConfigProp = serializedObject.FindProperty("ResultPaintingConfig");
         EditorGUILayout.PropertyField(resultPaintingConfigProp, new GUIContent("Result Painting Config", "The generated PaintingConfig asset"));
         
         // Display grid information if available
