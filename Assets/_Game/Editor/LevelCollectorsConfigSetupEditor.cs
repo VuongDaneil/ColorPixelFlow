@@ -274,6 +274,7 @@ public class LevelCollectorsConfigSetupEditor : Editor
             Undo.RecordObject(SelectedItem, "Toggle Lock");
             SelectedItem.IsLocked = newLockState;
             checkboxes[0] = newLockState;
+            SelectedItem.ApplyLockedState();
             EditorUtility.SetDirty(SelectedItem);
         }
 
@@ -284,6 +285,7 @@ public class LevelCollectorsConfigSetupEditor : Editor
             Undo.RecordObject(SelectedItem, "Toggle Hide");
             SelectedItem.IsHidden = newHideState;
             checkboxes[1] = newHideState;
+            SelectedItem.ApplyHiddenState();
             EditorUtility.SetDirty(SelectedItem);
         }
 

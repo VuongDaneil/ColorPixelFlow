@@ -460,7 +460,7 @@ public class ColorPixelsCollectorObject : MonoBehaviour
 
     public void ApplyHiddenState()
     {
-        VisualHandler.SetHiddenState(IsLocked);
+        VisualHandler.SetHiddenState(IsHidden);
     }
     #endregion
 
