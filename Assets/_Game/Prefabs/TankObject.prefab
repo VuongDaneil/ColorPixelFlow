@@ -257,8 +257,8 @@ MonoBehaviour:
   TankRope: {fileID: 5470391786957984830}
   TankRopeMesh: {fileID: 4817784629052676206}
   LockSpriteRenderer: {fileID: 0}
-  OriginalMat: {fileID: 0}
-  HiddenMat: {fileID: 0}
+  OriginalMat: {fileID: 2100000, guid: 58d0c4ac20f937a4db36764dfc64e930, type: 2}
+  HiddenMat: {fileID: 2100000, guid: 377d2d91ababd534880416cb466408dc, type: 2}
   CurrentColor: {r: 0, g: 0, b: 0, a: 0}
 --- !u!65 &8219764227500339937
 BoxCollider:
