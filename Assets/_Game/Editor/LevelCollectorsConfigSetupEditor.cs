@@ -275,6 +275,7 @@ public class LevelCollectorsConfigSetupEditor : Editor
             SelectedItem.IsLocked = newLockState;
             checkboxes[0] = newLockState;
             SelectedItem.ApplyLockedState();
+            manager.ImportCollectorsFromScene();
             EditorUtility.SetDirty(SelectedItem);
         }
 
@@ -286,6 +287,7 @@ public class LevelCollectorsConfigSetupEditor : Editor
             SelectedItem.IsHidden = newHideState;
             checkboxes[1] = newHideState;
             SelectedItem.ApplyHiddenState();
+            manager.ImportCollectorsFromScene();
             EditorUtility.SetDirty(SelectedItem);
         }
 

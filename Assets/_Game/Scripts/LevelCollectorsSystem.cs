@@ -96,24 +96,33 @@ public class LevelCollectorsSystem : MonoBehaviour
     public void SetupConnectedCollectors()
     {
         List<int> progressedIndex = new List<int>();
+        List<ColorPixelsCollectorObject> currentGroup = new List<ColorPixelsCollectorObject>();
         for (int i = 0; i < CurrentCollectors.Count; i++)
         {
             var collector = CurrentCollectors[i];
-            if (collector.ConnectedCollectorsIDs.Count <= 0 || progressedIndex.Contains(i)) 
+            if (progressedIndex.Contains(i)) continue;
+            if (collector.ConnectedCollectorsIDs.Count <= 0) 
             {
                 progressedIndex.Add(i);
                 collector.VisualHandler.SetupRope(false);
                 continue;
             }
-            foreach(int _id in collector.ConnectedCollectorsIDs)
+            currentGroup = new List<ColorPixelsCollectorObject>();
+            currentGroup.Add(collector);
+            foreach (int _id in collector.ConnectedCollectorsIDs)
             {
-                var connectTarget = GetCollectorByID(_id, out int _index);
+                ColorPixelsCollectorObject connectTarget = GetCollectorByID(_id, out int _index);
 
                 if (_index == -1) continue; 
                 progressedIndex.Add(_index);
-                collector.VisualHandler.SetupRope(true, connectTarget.VisualHandler);
+                currentGroup.Add(connectTarget);
+            }
+
+            for (int j = 0; j < currentGroup.Count - 1; j++)
+            {
+                currentGroup[j].VisualHandler.SetupRope(true, currentGroup[j + 1].VisualHandler);
 #if UNITY_EDITOR
-                collector.VisualHandler.TankRopeMesh.OnValidate();
+                currentGroup[j].VisualHandler.TankRopeMesh.OnValidate();
 #endif
             }
         }
