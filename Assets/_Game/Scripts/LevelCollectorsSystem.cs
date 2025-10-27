@@ -9,6 +9,7 @@ using UnityEngine.Experimental.Playables;
 
 public class LevelCollectorsSystem : MonoBehaviour
 {
+    #region PROPERTIES
     [Header("Configuration")]
     public ColorPalleteData ColorPalette; // The color source that collector will get color from by using colorCode
     public LevelColorCollectorsConfig CurrentLevelCollectorsConfig; // Current level config
@@ -24,17 +25,42 @@ public class LevelCollectorsSystem : MonoBehaviour
     [Header("Runtime Data")]
     public List<ColorPixelsCollectorObject> CurrentCollectors; // Spawned collectors in current config
     public List<CollectorColumn> CollectorColumns; // List of columns created
+    #endregion
 
+    #region UNITY CORE
     private void Start()
     {
         SetupCollectors();
     }
 
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        GUIStyle style = new GUIStyle();
+        style.normal.textColor = Color.yellow;
+        //style.fontStyle = FontStyle.Bold;
+
+        if (CurrentCollectors.Count > 0)
+        {
+            for (int i = 0; i < CurrentCollectors.Count; i++)
+            {
+                if (CurrentCollectors[i] == null) continue;
+                Vector3 labelPos = CurrentCollectors[i].transform.position + CurrentCollectors[i].transform.up * 1.5f;
+                Handles.Label(labelPos, i.ToString() + $"({CurrentCollectors[i].BulletCapacity})", style);
+            }
+        }
+    }
+#endif
+    #endregion
+
+    #region MAIN
+
+    #region _initialize
     public void SetupCollectors()
     {
         // Clear any existing collectors
         ClearExistingCollectors();
-        
+
         if (CurrentLevelCollectorsConfig == null)
         {
             Debug.LogWarning("No LevelColorCollectorsConfig assigned!");
@@ -86,7 +112,7 @@ public class LevelCollectorsSystem : MonoBehaviour
             }
             CurrentCollectors.Clear();
         }
-        
+
         if (CollectorColumns != null)
         {
             CollectorColumns.Clear();
@@ -101,7 +127,7 @@ public class LevelCollectorsSystem : MonoBehaviour
         {
             var collector = CurrentCollectors[i];
             if (progressedIndex.Contains(i)) continue;
-            if (collector.ConnectedCollectorsIDs.Count <= 0) 
+            if (collector.ConnectedCollectorsIDs.Count <= 0)
             {
                 progressedIndex.Add(i);
                 collector.VisualHandler.SetupRope(false);
@@ -113,7 +139,7 @@ public class LevelCollectorsSystem : MonoBehaviour
             {
                 ColorPixelsCollectorObject connectTarget = GetCollectorByID(_id, out int _index);
 
-                if (_index == -1) continue; 
+                if (_index == -1) continue;
                 progressedIndex.Add(_index);
                 currentGroup.Add(connectTarget);
             }
@@ -126,45 +152,6 @@ public class LevelCollectorsSystem : MonoBehaviour
 #endif
             }
         }
-    }
-
-
-#if UNITY_EDITOR
-    private void OnDrawGizmos()
-    {
-        GUIStyle style = new GUIStyle();
-        style.normal.textColor = Color.yellow;
-        //style.fontStyle = FontStyle.Bold;
-
-        if (CurrentCollectors.Count > 0)
-        {
-            for (int i = 0; i < CurrentCollectors.Count; i++)
-            {
-                if (CurrentCollectors[i] == null) continue;
-                Vector3 labelPos = CurrentCollectors[i].transform.position + CurrentCollectors[i].transform.up * 1.5f;
-                Handles.Label(labelPos, i.ToString() + $"({CurrentCollectors[i].BulletCapacity})", style);
-            }
-        }
-    }
-#endif
-
-    #region SUPPORTIVE
-    
-    #region _tool modules
-    public void RemoveCollector(ColorPixelsCollectorObject target)
-    {
-        CurrentCollectors.Remove(target);
-        foreach (var colObjects in CollectorColumns)
-        {
-            if (colObjects.CollectorsInColumn.Contains(target))
-            {
-                colObjects.CollectorsInColumn.Remove(target);
-                break;
-            }
-        }
-        DestroyImmediate(target.gameObject);
-        ReArrangePosition();
-        SetupConnectedCollectors();
     }
 
     public void SetUpAndArrangePosition(int collumnCount)
@@ -233,6 +220,92 @@ public class LevelCollectorsSystem : MonoBehaviour
         }
     }
 
+    public void ReArrangePosition()
+    {
+        int col = 0;
+        foreach (CollectorColumn column in CollectorColumns)
+        {
+            int row = 0;
+            int columnCount = CollectorColumns.Count;
+            var collectors = column.CollectorsInColumn;
+            for (int i = 0; i < collectors.Count; i++)
+            {
+                // Calculate the position relative to the formation center (which is the highest point)
+                // Use the formation center's transform to properly orient the formation
+                Vector3 spawnPosition = FormationCenter.position;
+
+                // Apply horizontal offset (perpendicular to forward direction) based on column
+                spawnPosition += (col - (columnCount - 1) / 2.0f) * SpaceBetweenColumns * FormationCenter.right;
+
+                // Apply depth offset (opposite to forward direction) based on row
+                spawnPosition -= row * SpaceBetweenCollectors * FormationCenter.forward;
+
+                // Spawn the collector with specified rotation
+                collectors[i].transform.position = spawnPosition;
+                collectors[i].transform.localEulerAngles = CollectorRotation;
+                row++;
+            }
+            col++;
+        }
+    }
+    #endregion
+
+    #region _events
+    private void RegisterEvent()
+    {
+        GameplayEventsManager.OnCollectAKey += OnPlayerCollectAKey;
+    }
+
+    private void UnregisterEvent()
+    {
+        GameplayEventsManager.OnCollectAKey -= OnPlayerCollectAKey;
+    }
+
+    private void OnPlayerCollectAKey()
+    {
+        ColorPixelsCollectorObject collectorToUnlock = GetFirstLockedCollectorMet();
+        if (collectorToUnlock != null)
+        {
+            collectorToUnlock.Unlock();
+        }
+    }
+    #endregion
+
+    #endregion
+
+    #region SUPPORTIVE
+    private ColorPixelsCollectorObject GetFirstLockedCollectorMet()
+    {
+        foreach (CollectorColumn column in CollectorColumns)
+        {
+            foreach (var collector in column.CollectorsInColumn)
+            {
+                if (collector.IsLocked)
+                {
+                    return collector;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public void RemoveCollector(ColorPixelsCollectorObject target)
+    {
+        CurrentCollectors.Remove(target);
+        foreach (var colObjects in CollectorColumns)
+        {
+            if (colObjects.CollectorsInColumn.Contains(target))
+            {
+                colObjects.CollectorsInColumn.Remove(target);
+                break;
+            }
+        }
+        DestroyImmediate(target.gameObject);
+        ReArrangePosition();
+        SetupConnectedCollectors();
+    }
+
     public ColorPixelsCollectorObject CloneNewFromCollector(ColorPixelsCollectorObject original)
     {
         // Spawn the collector with specified rotation
@@ -270,36 +343,6 @@ public class LevelCollectorsSystem : MonoBehaviour
 
         return collector;
     }
-
-    public void ReArrangePosition()
-    {
-        int col = 0;
-        foreach (CollectorColumn column in CollectorColumns)
-        {
-            int row = 0;
-            int columnCount = CollectorColumns.Count;
-            var collectors = column.CollectorsInColumn;
-            for (int i = 0; i < collectors.Count; i++)
-            {
-                // Calculate the position relative to the formation center (which is the highest point)
-                // Use the formation center's transform to properly orient the formation
-                Vector3 spawnPosition = FormationCenter.position;
-
-                // Apply horizontal offset (perpendicular to forward direction) based on column
-                spawnPosition += (col - (columnCount - 1) / 2.0f) * SpaceBetweenColumns * FormationCenter.right;
-
-                // Apply depth offset (opposite to forward direction) based on row
-                spawnPosition -= row * SpaceBetweenCollectors * FormationCenter.forward;
-
-                // Spawn the collector with specified rotation
-                collectors[i].transform.position = spawnPosition;
-                collectors[i].transform.localEulerAngles = CollectorRotation;
-                row++;
-            }
-            col++;
-        }
-    }
-    #endregion
 
     private ColorPixelsCollectorObject GetCollectorByID(int ID, out int index)
     {
