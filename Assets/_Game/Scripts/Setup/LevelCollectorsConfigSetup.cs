@@ -42,6 +42,7 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
     public SwapCollectors SwapModule;
     public SplitCollector SplitModule;
     public CombinesCollector CombineModule;
+    public ConnectCollectors ConnectModule;
 
 #if UNITY_EDITOR
     public LevelColorCollectorsConfig CreateConfigAsset(string configName, string path = "Assets/Resources/")
@@ -124,11 +125,12 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
             {
                 SingleColorCollectorConfig newCollector = new SingleColorCollectorConfig
                 {
+                    ID = collector.ID,
                     ColorCode = collector.CollectorColor, // Use the color code the collector can destroy
                     Bullets = collector.BulletCapacity, // Use remaining bullets
                     Locked = collector.IsLocked,
                     Hidden = collector.IsHidden, // Default to not hidden
-                    ConnectedCollectorsIndex = new List<int>(collector.ConnectedCollectorsIndex) // Default to no connections
+                    ConnectedCollectorsIDs = new List<int>(collector.ConnectedCollectorsIDs) // Default to no connections
                 };
                 newColumn.Collectors.Add(newCollector);
             }
@@ -165,22 +167,24 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
             SingleColorCollectorConfig collector = allCollectorConfig[i];
             
             // For each connection in this collector, ensure the reverse connection exists
-            foreach (int connectedIndex in collector.ConnectedCollectorsIndex)
+            foreach (int connectedID in collector.ConnectedCollectorsIDs)
             {
-                if (connectedIndex >= 0 && connectedIndex < allCollectorConfig.Count)
+                if (connectedID == collector.ID) continue;
+                if (connectedID >= 0)
                 {
-                    SingleColorCollectorConfig targetCollector = allCollectorConfig[connectedIndex];
+                    SingleColorCollectorConfig targetCollector = GetCollectorConfigByID(allCollectorConfig, connectedID);
+                    if (targetCollector == null || targetCollector.ID == collector.ID) return;
                     
                     // If the target collector doesn't have this collector in its connections, add it
-                    if (!targetCollector.ConnectedCollectorsIndex.Contains(i))
+                    if (!targetCollector.ConnectedCollectorsIDs.Contains(collector.ID))
                     {
-                        targetCollector.ConnectedCollectorsIndex.Add(i);
-                        Debug.Log($"Added reverse connection: Collector {connectedIndex} now connected to {i}");
+                        targetCollector.ConnectedCollectorsIDs.Add(collector.ID);
+                        Debug.Log($"Added reverse connection: Collector {connectedID} now connected to ID {collector.ID}");
                     }
                 }
                 else
                 {
-                    Debug.LogWarning($"Invalid connection index {connectedIndex} in collector {i}");
+                    Debug.LogWarning($"Invalid connection index {connectedID} in collector {i}");
                 }
             }
         }
@@ -287,6 +291,8 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         // Process each outline to create collectors
         int outlineCount = outlines.Count;
         List<SingleColorCollectorConfig> allCollectorConfigs = new List<SingleColorCollectorConfig>();
+
+        int id = 0;
         for (int i = 0; i < outlineCount; i++)
         {
             var outline = outlines[i];
@@ -323,16 +329,18 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
                     
                     SingleColorCollectorConfig collector = new SingleColorCollectorConfig
                     {
+                        ID = id,
                         ColorCode = colorCode,
                         Bullets = bulletsForThisCollector,
                         Locked = defaultLocked,
                         Hidden = defaultHidden,
-                        ConnectedCollectorsIndex = new List<int>() // Empty by default
+                        ConnectedCollectorsIDs = new List<int>() // Empty by default
                     };
 
                     allCollectorConfigs.Add(collector);
                     
                     remainingPixels -= bulletsForThisCollector;
+                    id++;
                 }
             }
         }

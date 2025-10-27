@@ -138,6 +138,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   VisualHandler: {fileID: 8798152987541459346}
+  ID: -1
   MovementHandle: {fileID: 6747794276449089522}
   CurrentGrid: {fileID: 0}
   BulletCapacity: 10
@@ -146,7 +147,7 @@ MonoBehaviour:
   DetectionRadius: 0.5
   IsLocked: 0
   IsHidden: 0
-  ConnectedCollectorsIndex: 
+  ConnectedCollectorsIDs: 
   CurrentTargetPosition: {x: 0, y: 0, z: 0}
   IsCollectorActive: 1
   possibleTargets: []

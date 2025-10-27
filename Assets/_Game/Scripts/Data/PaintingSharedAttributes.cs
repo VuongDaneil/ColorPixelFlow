@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public static class PaintingSharedAttributes
@@ -58,5 +59,17 @@ public static class PaintingSharedAttributes
         insertIndex = Mathf.Clamp(insertIndex, 0, list.Count);
 
         list.Insert(insertIndex, newItem);
+    }
+
+    public static SingleColorCollectorConfig GetCollectorConfigByID(List<SingleColorCollectorConfig> _list, int ID)
+    {
+        for (int i = 0; i < _list.Count; i++)
+        {
+            if (_list[i].ID == ID)
+            {
+                return _list[i];
+            }
+        }
+        return null;
     }
 }

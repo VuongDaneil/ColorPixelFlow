@@ -1,13 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using GogoGaga.OptimizedRopesAndCables;
+using NaughtyAttributes;
 using UnityEngine;
 // Custom ReadOnly attribute if not available in the project
 
 public class ColorPixelsCollectorObject : MonoBehaviour
 {
     public CollectorVisualHandler VisualHandler;
-    
+
+    [ReadOnly] public int ID = -1;
+
     [Header("Movement")]
     [Tooltip("Movement handler script for spline movement")]
     public CachedTransformPathMover MovementHandle;
@@ -34,7 +37,7 @@ public class ColorPixelsCollectorObject : MonoBehaviour
     [Header("CONFIG ATTRIBUTES")]
     public bool IsLocked;
     public bool IsHidden;
-    public List<int> ConnectedCollectorsIndex; // original index of other collectors that connected to this collector
+    public List<int> ConnectedCollectorsIDs; // original index of other collectors that connected to this collector
 
     [Header("Runtime Data")]
     public Vector3 CurrentTargetPosition;

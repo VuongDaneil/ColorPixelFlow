@@ -177,6 +177,7 @@ public class LevelCollectorsConfigSetupEditor : Editor
                     case 1: if (hasSelectedItem && hasCollidedItem) manager.SwapModule.Swap(SelectedItem, CollidedItem); break;
                     case 2: if (hasSelectedItem && hasCollidedItem) manager.CombineModule.Combine(SelectedItem, CollidedItem); break;
                     case 3: if (hasSelectedItem) manager.SplitModule.Split(SelectedItem); break;
+                    case 4: if (hasSelectedItem && hasCollidedItem) manager.ConnectModule.Connect(SelectedItem, CollidedItem); break;
                 }
                 SelectedItem = null;
                 CollidedItem = null;
@@ -232,7 +233,6 @@ public class LevelCollectorsConfigSetupEditor : Editor
 
         GUILayout.EndHorizontal();
         GUILayout.EndArea();
-
         Handles.EndGUI();
     }
 }

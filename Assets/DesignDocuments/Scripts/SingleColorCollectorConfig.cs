@@ -5,6 +5,8 @@ using System;
 [Serializable]
 public class SingleColorCollectorConfig
 {
+    public int ID = -1;
+
     [Header("Color and Ammunition")]
     public string ColorCode; // Color code that this collector can collect
     public int Bullets; // Number of bullets, each of them can collect one color
@@ -14,19 +16,20 @@ public class SingleColorCollectorConfig
     public bool Hidden; // Hide information about color and bullet from player
 
     [Header("Connections")]
-    public List<int> ConnectedCollectorsIndex; // Original index of other collectors that connected to this collector
+    public List<int> ConnectedCollectorsIDs; // Original index of other collectors that connected to this collector
 
     public SingleColorCollectorConfig()
     {
-        ConnectedCollectorsIndex = new List<int>();
+        ConnectedCollectorsIDs = new List<int>();
     }
 
     public SingleColorCollectorConfig(string colorCode, int bullets, bool locked = false, bool hidden = false)
     {
+        ID = -1;
         ColorCode = colorCode;
         Bullets = bullets;
         Locked = locked;
         Hidden = hidden;
-        ConnectedCollectorsIndex = new List<int>();
+        ConnectedCollectorsIDs = new List<int>();
     }
 }

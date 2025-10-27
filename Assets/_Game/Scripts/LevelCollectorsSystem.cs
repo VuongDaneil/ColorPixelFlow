@@ -99,16 +99,19 @@ public class LevelCollectorsSystem : MonoBehaviour
         for (int i = 0; i < CurrentCollectors.Count; i++)
         {
             var collector = CurrentCollectors[i];
-            if (collector.ConnectedCollectorsIndex.Count <= 0 || progressedIndex.Contains(i)) 
+            if (collector.ConnectedCollectorsIDs.Count <= 0 || progressedIndex.Contains(i)) 
             {
                 progressedIndex.Add(i);
                 collector.VisualHandler.SetupRope(false);
                 continue;
             }
-            foreach(int index in collector.ConnectedCollectorsIndex)
+            foreach(int _id in collector.ConnectedCollectorsIDs)
             {
-                progressedIndex.Add(index);
-                collector.VisualHandler.SetupRope(true, CurrentCollectors[index].VisualHandler);
+                var connectTarget = GetCollectorByID(_id, out int _index);
+
+                if (_index == -1) continue; 
+                progressedIndex.Add(_index);
+                collector.VisualHandler.SetupRope(true, connectTarget.VisualHandler);
 #if UNITY_EDITOR
                 collector.VisualHandler.TankRopeMesh.OnValidate();
 #endif
@@ -185,6 +188,8 @@ public class LevelCollectorsSystem : MonoBehaviour
 
                 if (collector != null)
                 {
+                    collector.ID = config.ID;
+
                     // Find color from palette based on ColorCode
                     if (ColorPalette != null && ColorPalette.colorPallete.ContainsKey(config.ColorCode))
                     {
@@ -196,7 +201,7 @@ public class LevelCollectorsSystem : MonoBehaviour
                     // Apply bullet settings
                     collector.BulletCapacity = config.Bullets;
                     collector.BulletLeft = config.Bullets;
-                    collector.ConnectedCollectorsIndex = new List<int>(config.ConnectedCollectorsIndex);
+                    collector.ConnectedCollectorsIDs = new List<int>(config.ConnectedCollectorsIDs);
                     collector.IsLocked = config.Locked;
                     collector.IsHidden = config.Hidden;
 
@@ -225,6 +230,8 @@ public class LevelCollectorsSystem : MonoBehaviour
 
         if (collector != null)
         {
+            collector.ID = -1;
+
             // Find color from palette based on ColorCode
             if (ColorPalette != null && ColorPalette.colorPallete.ContainsKey(original.CollectorColor))
             {
@@ -236,7 +243,7 @@ public class LevelCollectorsSystem : MonoBehaviour
             // Apply bullet settings
             collector.BulletCapacity = original.BulletCapacity;
             collector.BulletLeft = original.BulletCapacity;
-            collector.ConnectedCollectorsIndex = new List<int>(original.ConnectedCollectorsIndex);
+            collector.ConnectedCollectorsIDs = new List<int>(original.ConnectedCollectorsIDs);
             collector.IsLocked = original.IsLocked;
             collector.IsHidden = original.IsHidden;
 
@@ -278,6 +285,20 @@ public class LevelCollectorsSystem : MonoBehaviour
         }
     }
     #endregion
+
+    private ColorPixelsCollectorObject GetCollectorByID(int ID, out int index)
+    {
+        index = -1;
+        for (int i = 0; i < CurrentCollectors.Count; i++)
+        {
+            if (CurrentCollectors[i].ID == ID)
+            {
+                index = i;
+                return CurrentCollectors[i];
+            }
+        }
+        return null;
+    }
 
     #endregion
 }
