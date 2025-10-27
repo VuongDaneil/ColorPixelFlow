@@ -189,7 +189,7 @@ public class ColorPixelsCollectorObject : MonoBehaviour
                 if (isCloseEnough && !hasObstacle && !hasBeenProcessed)
                 {
                     // Destroy the pixel
-                    ShooPixel(tempPixel);
+                    ShootPixel(tempPixel);
                     
                     // Mark position as processed in current direction
                     if (hasValidMovementDirection)
@@ -211,7 +211,7 @@ public class ColorPixelsCollectorObject : MonoBehaviour
     }
 
     // Method to destroy a specific pixel
-    private void ShooPixel(PaintingPixel pixel)
+    private void ShootPixel(PaintingPixel pixel)
     {
         if (pixel != null && !pixel.destroyed && !pixel.Hidden && BulletLeft > 0)
         {
@@ -449,6 +449,22 @@ public class ColorPixelsCollectorObject : MonoBehaviour
             }
         }
     }
+
+    #region MAIN
+
+    #region _visual
+    public void ApplyLockedState()
+    {
+        VisualHandler.SetLockedIcon(IsLocked);
+    }
+
+    public void ApplyHiddenState()
+    {
+        VisualHandler.SetHiddenState(IsLocked);
+    }
+    #endregion
+
+    #endregion
 
 #if UNITY_EDITOR
     // Visualize the detection radius in the editor

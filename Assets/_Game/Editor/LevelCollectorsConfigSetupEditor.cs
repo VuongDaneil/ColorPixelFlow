@@ -1,5 +1,7 @@
-﻿using UnityEditor;
+﻿using FluffyUnderware.DevToolsEditor;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
 
 [CustomEditor(typeof(LevelCollectorsConfigSetup))]
@@ -11,8 +13,12 @@ public class LevelCollectorsConfigSetupEditor : Editor
     LevelCollectorsConfigSetup manager;
     public ColorPixelsCollectorObject SelectedItem;
     public ColorPixelsCollectorObject CollidedItem;
+
     private static int selectedMode = 0;
     private static readonly string[] labels = { "Move", "Swap", "Combine", "Split", "Connect" };
+
+    private static bool[] checkboxes = new bool[2];
+    private static readonly string[] checkBoxlabels = { "Lock", "Hide"};
 
     private void OnEnable()
     {
@@ -93,6 +99,7 @@ public class LevelCollectorsConfigSetupEditor : Editor
                     "Yes", "Cancel"))
                 {
                     manager.GenerateCollectorsFromPaintingConfig();
+                    manager.LoadConfigAsset(manager.configAsset);
                 }
             }
             else
@@ -125,7 +132,11 @@ public class LevelCollectorsConfigSetupEditor : Editor
     private void OnSceneGUI()
     {
         if (!manager.ToolActive) return;
-        ShowToggles();
+        ShowToolToggles();
+        if (SelectedItem != null)
+        {
+            ShowCollectorOptionsCheckBox();
+        }
 
         Event e = Event.current;
 
@@ -207,13 +218,13 @@ public class LevelCollectorsConfigSetupEditor : Editor
         }
     }
 
-    private void ShowToggles()
+    private void ShowToolToggles()
     {
         Handles.BeginGUI();
 
         float width = 300f;
         float height = 50f;
-        float x = (SceneView.currentDrawingSceneView.position.width - width) * 0.5f;  // canh giữa
+        float x = (SceneView.currentDrawingSceneView.position.width - width);  // right align
         float y = SceneView.currentDrawingSceneView.position.height - height - 20f;   // cách đáy 20px
 
         GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
@@ -234,5 +245,61 @@ public class LevelCollectorsConfigSetupEditor : Editor
         GUILayout.EndHorizontal();
         GUILayout.EndArea();
         Handles.EndGUI();
+    }
+
+    private void ShowCollectorOptionsCheckBox()
+    {
+        if (SelectedItem == null) return;
+
+        float width = 300f;
+        float height = 50f;
+        float x = (SceneView.currentDrawingSceneView.position.width - width);  // right align
+        float y = SceneView.currentDrawingSceneView.position.height - height - 90f;   // cách đáy 20px
+
+        Handles.BeginGUI();
+
+        Color oldColor = GUI.backgroundColor;
+        //GUI.backgroundColor = new Color(0.3f, 0.7f, 1f, 1f);
+        GUI.backgroundColor = manager.previewSystem.ColorPalette.GetColorByCode(SelectedItem.CollectorColor);
+        GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
+        GUILayout.Label($"{SelectedItem.name} - {SelectedItem.CollectorColor} - {SelectedItem.BulletCapacity} Bullets", EditorStyles.boldLabel);
+
+        GUILayout.BeginHorizontal(GUI.skin.box);
+        GUILayout.Label("Options", EditorStyles.boldLabel);
+
+        // --- LOCK TOGGLE ---
+        bool newLockState = GUILayout.Toggle(SelectedItem.IsLocked, checkBoxlabels[0]);
+        if (newLockState != SelectedItem.IsLocked)
+        {
+            Undo.RecordObject(SelectedItem, "Toggle Lock");
+            SelectedItem.IsLocked = newLockState;
+            checkboxes[0] = newLockState;
+            EditorUtility.SetDirty(SelectedItem);
+        }
+
+        // --- HIDE TOGGLE ---
+        bool newHideState = GUILayout.Toggle(SelectedItem.IsHidden, checkBoxlabels[1]);
+        if (newHideState != SelectedItem.IsHidden)
+        {
+            Undo.RecordObject(SelectedItem, "Toggle Hide");
+            SelectedItem.IsHidden = newHideState;
+            checkboxes[1] = newHideState;
+            EditorUtility.SetDirty(SelectedItem);
+        }
+
+
+        GUILayout.EndHorizontal();
+
+        GUILayout.BeginHorizontal(GUI.skin.box);
+        GUILayout.Label("Options", EditorStyles.boldLabel);
+
+        bool newState = GUILayout.Toggle(checkboxes[0], checkBoxlabels[0], "Button", GUILayout.Width(80));
+        checkboxes[0] = SelectedItem.IsLocked;
+
+        GUILayout.EndHorizontal();
+
+        GUILayout.EndArea();
+
+        GUI.backgroundColor = oldColor;
     }
 }

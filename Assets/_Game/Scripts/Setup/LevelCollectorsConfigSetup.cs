@@ -15,14 +15,9 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
     public LevelColorCollectorsConfig configAsset; // The config asset to set up
     public PaintingConfig paintingConfig;
 
-    [Header("Limits")]
-    public int MaxBulletPerCollector = 20; // Maximum bullets per collector as per design document
-
     [Header("Setup Parameters")]
-    public int numberOfCollectors = 6; // Total number of collectors to create
-    public int numberOfColumns = 3; // Number of columns to arrange collectors in
-    public int bulletsPerCollector = 10; // Number of bullets for each collector
-    public string baseColorCode = "Color"; // Base name for color codes (will be suffixed with index)
+    public int NumberOfColumns = 3; // Number of columns to arrange collectors in
+    public int MaxBulletPerCollector = 20; // Maximum bullets per collector as per design document
 
     [Header("Default States")]
     public bool defaultLocked = false;
@@ -348,12 +343,12 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         int collectorCount = allCollectorConfigs.Count;
         List<ColumnOfCollectorConfig> columnsConfig = new List<ColumnOfCollectorConfig>();
 
-        for (int colIdx = 0; colIdx < numberOfColumns; colIdx++)
+        for (int colIdx = 0; colIdx < NumberOfColumns; colIdx++)
         {
             ColumnOfCollectorConfig column = new ColumnOfCollectorConfig();
             // Add collectors to this column (every nth collector where n is the number of columns)
             // In row-major order, collectors in the same column are at indices: colIdx, colIdx+numberOfColumns, colIdx+2*numberOfColumns, etc.
-            for (int idx = colIdx; idx < collectorCount; idx += numberOfColumns)
+            for (int idx = colIdx; idx < collectorCount; idx += NumberOfColumns)
             {
                 if (idx < allCollectorConfigs.Count)
                 {

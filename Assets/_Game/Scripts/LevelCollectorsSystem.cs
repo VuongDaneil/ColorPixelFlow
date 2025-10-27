@@ -208,6 +208,9 @@ public class LevelCollectorsSystem : MonoBehaviour
                     // Set locked state (this might be handled by deactivating the collector)
                     if (false) collector.SetCollectorActive(!config.Locked);
 
+                    collector.ApplyHiddenState();
+                    collector.ApplyLockedState();
+
                     // Add to our lists
                     colObjects.CollectorsInColumn.Add(collector);
                     CurrentCollectors.Add(collector);
@@ -249,6 +252,9 @@ public class LevelCollectorsSystem : MonoBehaviour
 
             // Set locked state (this might be handled by deactivating the collector)
             if (false) collector.SetCollectorActive(!original.IsLocked);
+
+            collector.ApplyHiddenState();
+            collector.ApplyLockedState();
 
             CurrentCollectors.Add(collector);
         }

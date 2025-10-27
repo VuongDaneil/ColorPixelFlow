@@ -13,6 +13,13 @@ public class CollectorVisualHandler : MonoBehaviour
     public Rope TankRope;
     public RopeMesh TankRopeMesh;
 
+    [Header("Object: LOCK")]
+    public SpriteRenderer LockSpriteRenderer;
+
+    [Header("Object: HIDDEN")]
+    public Material OriginalMat;
+    public Material HiddenMat;
+
     public Color CurrentColor;
 
     /// <summary>
@@ -39,6 +46,7 @@ public class CollectorVisualHandler : MonoBehaviour
         {
             if (renderer != null)
             {
+                renderer.material = OriginalMat;
                 renderer.SetPropertyBlock(materialPropertyBlock);
             }
         }
@@ -66,4 +74,31 @@ public class CollectorVisualHandler : MonoBehaviour
             SetMeshColor(CurrentColor);
         }
     }
+
+    #region _lock
+    public void SetLockedIcon(bool locked)
+    {
+        LockSpriteRenderer.enabled = locked;
+    }
+    #endregion
+
+    #region _hidden
+    public void SetHiddenState(bool hidden)
+    {
+        if (hidden)
+        {
+            foreach (Renderer renderer in GunnerRenderers)
+            {
+                if (renderer != null)
+                {
+                    renderer.material = HiddenMat;
+                }
+            }
+        }
+        else
+        {
+            SetMeshColor(CurrentColor);
+        }
+    }
+    #endregion
 }
