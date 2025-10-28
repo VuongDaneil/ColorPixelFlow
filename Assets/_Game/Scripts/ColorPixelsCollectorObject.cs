@@ -401,7 +401,7 @@ public class ColorPixelsCollectorObject : MonoBehaviour
             case MovementDirection.VerticalBottomToTop:
                 foreach (PaintingPixel pixel in pixelOnSameRow)
                 {
-                    if (!pixel.destroyed && !pixel.Hidden && pixel.column > targetPixel.column)
+                    if (!pixel.destroyed && !pixel.Hidden && pixel.column < targetPixel.column)
                     {
                         return true;
                     }
@@ -410,7 +410,7 @@ public class ColorPixelsCollectorObject : MonoBehaviour
             case MovementDirection.VerticalTopToBottom:
                 foreach (PaintingPixel pixel in pixelOnSameRow)
                 {
-                    if (!pixel.destroyed && !pixel.Hidden && pixel.column < targetPixel.column)
+                    if (!pixel.destroyed && !pixel.Hidden && pixel.column > targetPixel.column)
                     {
                         return true;
                     }
@@ -437,7 +437,7 @@ public class ColorPixelsCollectorObject : MonoBehaviour
             case MovementDirection.HorizontalLeftToRight:
                 foreach (PaintingPixel pixel in pixelOnSameColumn)
                 {
-                    if (!pixel.destroyed && !pixel.Hidden && pixel.row < targetPixel.row)
+                    if (!pixel.destroyed && !pixel.Hidden && pixel.row > targetPixel.row)
                     {
                         return true;
                     }
@@ -446,7 +446,7 @@ public class ColorPixelsCollectorObject : MonoBehaviour
             case MovementDirection.HorizontalRightToLeft:
                 foreach (PaintingPixel pixel in pixelOnSameColumn)
                 {
-                    if (!pixel.destroyed && !pixel.Hidden && pixel.row > targetPixel.row)
+                    if (!pixel.destroyed && !pixel.Hidden && pixel.row < targetPixel.row)
                     {
                         return true;
                     }
