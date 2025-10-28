@@ -13,7 +13,7 @@ public class PaintingConfigSetup : MonoBehaviour
     
     [Header("Color Filter Settings")]
     public bool useColorFilter = false;
-    public List<string> colorCodeInUse = new List<string>();
+    public List<string> ColorCodeInUse = new List<string>();
 
     [Header("Result")]
     [ReadOnly] public PaintingConfig CurrentPaintingConfig;
@@ -170,7 +170,7 @@ public class PaintingConfigSetup : MonoBehaviour
         foreach (var kvp in palette.colorPallete)
         {
             // Only consider colors that are in the colorCodeInUse list if useColorFilter is enabled and the list is not empty
-            if (useColorFilter && colorCodeInUse.Count > 0 && !colorCodeInUse.Contains(kvp.Key))
+            if (useColorFilter && ColorCodeInUse.Count > 0 && !ColorCodeInUse.Contains(kvp.Key))
             {
                 continue;
             }
@@ -281,13 +281,13 @@ public class PaintingConfigSetup : MonoBehaviour
         }
         
         // If color filtering is enabled but colorCodeInUse is empty, we can't filter
-        if (colorCodeInUse.Count == 0)
+        if (ColorCodeInUse.Count == 0)
         {
             return false;
         }
         
         // If color filtering is enabled and colorCodeInUse has values, check if they exist in the palette
-        foreach (string colorCode in colorCodeInUse)
+        foreach (string colorCode in ColorCodeInUse)
         {
             if (!colorPalette.colorPallete.ContainsKey(colorCode))
             {

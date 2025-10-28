@@ -14,3 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   BlocksPaintingConfig: {fileID: 11400000, guid: 1408ed08920eb4541a2534cad6f209ba, type: 2}
   CollectorsConfig: {fileID: 11400000, guid: 97a3e440711ff334688f68948af090d6, type: 2}
+  ColorUsed:
+  - Green2
+  - Brown4
+  - Black
+  - Orange5
+  - Yellow3
+  - Orange1
+  - Blue3

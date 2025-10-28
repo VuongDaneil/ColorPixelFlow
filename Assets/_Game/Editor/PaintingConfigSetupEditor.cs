@@ -7,7 +7,6 @@ public class PaintingConfigSetupEditor : Editor
 {
     public override void OnInspectorGUI()
     {
-        base.OnInspectorGUI();
         serializedObject.Update();
 
         PaintingConfigSetup setup = (PaintingConfigSetup)target;
@@ -73,13 +72,13 @@ public class PaintingConfigSetupEditor : Editor
             EditorGUILayout.LabelField($"Colors in Palette: {setup.colorPalette.colorPallete.Count}");
             
             // Show information about color codes in use if specified
-            if (setup.useColorFilter && setup.colorCodeInUse != null && setup.colorCodeInUse.Count > 0)
+            if (setup.useColorFilter && setup.ColorCodeInUse != null && setup.ColorCodeInUse.Count > 0)
             {
-                EditorGUILayout.LabelField($"Colors Being Used: {setup.colorCodeInUse.Count}");
+                EditorGUILayout.LabelField($"Colors Being Used: {setup.ColorCodeInUse.Count}");
                 
                 // Check for invalid color codes
                 List<string> invalidCodes = new List<string>();
-                foreach (string code in setup.colorCodeInUse)
+                foreach (string code in setup.ColorCodeInUse)
                 {
                     if (!setup.colorPalette.colorPallete.ContainsKey(code))
                     {
@@ -92,7 +91,7 @@ public class PaintingConfigSetupEditor : Editor
                     EditorGUILayout.HelpBox($"Warning: The following color codes are not in the palette: {string.Join(", ", invalidCodes)}", MessageType.Warning);
                 }
             }
-            else if (setup.useColorFilter && (setup.colorCodeInUse == null || setup.colorCodeInUse.Count == 0))
+            else if (setup.useColorFilter && (setup.ColorCodeInUse == null || setup.ColorCodeInUse.Count == 0))
             {
                 EditorGUILayout.HelpBox("Color filtering is enabled but no color codes are specified!", MessageType.Warning);
             }

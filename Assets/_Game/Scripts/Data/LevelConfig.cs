@@ -7,4 +7,6 @@ public class LevelConfig : ScriptableObject
 {
     public PaintingConfig BlocksPaintingConfig;
     public LevelColorCollectorsConfig CollectorsConfig;
+
+    public List<string> ColorsUsed = new List<string>();
 }

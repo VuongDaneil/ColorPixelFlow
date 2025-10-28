@@ -3,18 +3,22 @@ using NaughtyAttributes;
 using UnityEditor;
 using UnityEngine;
 using System.IO;
+using System.Collections.Generic;
 
 public class LevelConfigSetup : MonoBehaviour
 {
     #region PROPERTIES
+    [Space]
+    [Header("INPUT(s)")]
+    public Sprite NewTargetPainting;
+    public List<string> ColorCodesUsed = new List<string>();
+
     [Header("LEVEL DATA(s)")]
     public LevelConfig CurrentLevel;
     [ReadOnly] public PaintingConfig CurrentLevelPaintingConfig;
     [ReadOnly] public LevelColorCollectorsConfig CurrentLevelCollectorConfig;
     [ReadOnly] public Sprite CurrentLevelPainting;
-
-    [Space]
-    public Sprite NewTargetPainting;
+    [ReadOnly] public List<string> CurrentLevelColorCodes = new List<string>();
 
     [Header("CONTROLLER(s)")]
     public PaintingGridObject CurrentGridObject;
@@ -84,6 +88,7 @@ public class LevelConfigSetup : MonoBehaviour
             return;
         }
 
+        CurrentLevelColorCodes = new List<string>(CurrentLevel.ColorsUsed);
         CurrentLevelCollectorConfig = CurrentLevel.CollectorsConfig;
         CurrentLevelPaintingConfig = CurrentLevel.BlocksPaintingConfig;
 
@@ -143,10 +148,12 @@ public class LevelConfigSetup : MonoBehaviour
         if (existingConfig != null)
         {
             CurrentLevel = existingConfig;
+            PaintingSetup.ColorCodeInUse = new List<string>(existingConfig.ColorsUsed);
             SetUpComponents();
             return;
         }
 
+        PaintingSetup.ColorCodeInUse = new List<string>(ColorCodesUsed);
         PaintingSetup.TargetPainting = NewTargetPainting;
         PaintingSetup.SamplePaintingToGrid(NewTargetPainting);
 
@@ -183,6 +190,7 @@ public class LevelConfigSetup : MonoBehaviour
         LevelConfig newConfig = ScriptableObject.CreateInstance<LevelConfig>();
         newConfig.BlocksPaintingConfig = paintingConfig;
         newConfig.CollectorsConfig = collectorConfig;
+        newConfig.ColorsUsed = new List<string>(ColorCodesUsed);
         AssetDatabase.CreateAsset(newConfig, assetPath);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();

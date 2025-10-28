@@ -3,6 +3,9 @@ using NaughtyAttributes;
 using System.Linq;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 public class KeyObjectConfigSetup : MonoBehaviour
 {
     [Header("Key Configuration")]
@@ -57,6 +60,29 @@ public class KeyObjectConfigSetup : MonoBehaviour
     public void ClearKeySetups()
     {
         keyObjectSetups.Clear();
+    }
+
+    public void ClearAllKeySetups()
+    {
+        ClearKeySetups();
+
+        // Also clear key objects from the grid if they exist
+        if (gridObject != null && gridObject.keyObjects != null)
+        {
+            // Destroy the key gameobjects
+            List<KeyObject> currentKeys = new List<KeyObject>(gridObject.keyObjects);
+            foreach (var keyObj in currentKeys)
+            {
+                gridObject.RemoveKeyObject(keyObj);
+            }
+            gridObject.keyObjects.Clear();
+        }
+
+#if UNITY_EDITOR
+        EditorUtility.SetDirty(this);
+        if (gameObject != null)
+            EditorUtility.SetDirty(gameObject);
+#endif
     }
 
     /// <summary>

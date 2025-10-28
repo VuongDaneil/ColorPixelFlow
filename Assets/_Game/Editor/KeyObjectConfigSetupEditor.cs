@@ -46,23 +46,7 @@ public class KeyObjectConfigSetupEditor : Editor
         {
             if (EditorUtility.DisplayDialog("Confirm", "Are you sure you want to clear all key setups?", "Yes", "No"))
             {
-                keyConfigSetup.ClearKeySetups();
-
-                // Also clear key objects from the grid if they exist
-                if (keyConfigSetup.gridObject != null && keyConfigSetup.gridObject.keyObjects != null)
-                {
-                    // Destroy the key gameobjects
-                    List<KeyObject> currentKeys = new List<KeyObject>(keyConfigSetup.gridObject.keyObjects);
-                    foreach (var keyObj in currentKeys)
-                    {
-                        keyConfigSetup.gridObject.RemoveKeyObject(keyObj);
-                    }
-                    keyConfigSetup.gridObject.keyObjects.Clear();
-                }
-
-                EditorUtility.SetDirty(keyConfigSetup);
-                if (keyConfigSetup.gameObject != null)
-                    EditorUtility.SetDirty(keyConfigSetup.gameObject);
+                keyConfigSetup.ClearAllKeySetups();
             }
         }
 

@@ -120,8 +120,6 @@ public class PaintingAdvancedSetupEditor : Editor
 
     private void ShowToolButtonsDelete()
     {
-        if (manager.SelectedItems.Count <= 0) return;
-
         Handles.BeginGUI();
 
         float width = 355f;
@@ -133,17 +131,17 @@ public class PaintingAdvancedSetupEditor : Editor
 
         GUILayout.BeginHorizontal();
 
-        Color color = GUI.backgroundColor;
-        GUI.backgroundColor = color;
+        Color oldColor = GUI.backgroundColor;
+        GUI.backgroundColor = Color.red;
 
         if (GUILayout.Button(deleteLabels[0], GUILayout.Width(80), GUILayout.Height(30)))
         {
-            manager.KeySetupModule.CreateKey(manager.SelectedItems);
+            manager.KeySetupModule.ClearAllKeySetups();
         }
 
-        if (manager.PipeSetupModule.IsValidPipeOrientation(manager.SelectedItems[0].PixelData, manager.SelectedItems[1].PixelData))
+        if (GUILayout.Button(deleteLabels[1], GUILayout.Width(80), GUILayout.Height(30)))
         {
-            GUILayout.Button(deleteLabels[1], GUILayout.Width(80), GUILayout.Height(30));
+
         }
 
         if (manager.WallSetupModule.IsValidWallOrientation(manager.SelectedItems))
@@ -151,6 +149,7 @@ public class PaintingAdvancedSetupEditor : Editor
             GUILayout.Button(deleteLabels[2], GUILayout.Width(80), GUILayout.Height(30));
         }
 
+        GUI.backgroundColor = oldColor;
         GUILayout.EndHorizontal();
         GUILayout.EndArea();
         Handles.EndGUI();

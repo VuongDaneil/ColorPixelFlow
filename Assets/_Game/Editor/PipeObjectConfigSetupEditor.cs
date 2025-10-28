@@ -73,23 +73,7 @@ public class PipeObjectConfigSetupEditor : Editor
         {
             if (EditorUtility.DisplayDialog("Confirm", "Are you sure you want to clear all pipe setups?", "Yes", "No"))
             {
-                pipeConfigSetup.ClearPipeSetups();
-                
-                // Also clear pipe objects from the grid if they exist
-                if (pipeConfigSetup.gridObject != null && pipeConfigSetup.gridObject.pipeObjects != null)
-                {
-                    // Destroy the pipe gameobjects
-                    List<PipeObject> currentPipes = new List<PipeObject>(pipeConfigSetup.gridObject.pipeObjects);
-                    foreach (var pipeObj in currentPipes)
-                    {
-                        pipeConfigSetup.gridObject.RemovePipeObject(pipeObj);
-                    }
-                    pipeConfigSetup.gridObject.pipeObjects.Clear();
-                }
-                
-                EditorUtility.SetDirty(pipeConfigSetup);
-                if (pipeConfigSetup.gameObject != null)
-                    EditorUtility.SetDirty(pipeConfigSetup.gameObject);
+                pipeConfigSetup.ClearAllPipeSetups();
             }
         }
 

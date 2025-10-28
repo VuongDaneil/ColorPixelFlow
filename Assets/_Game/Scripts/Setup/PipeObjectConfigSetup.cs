@@ -2,6 +2,10 @@ using System.Collections.Generic;
 using NaughtyAttributes;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 public class PipeObjectConfigSetup : MonoBehaviour
 {
     [Header("Pipe Configuration")]
@@ -66,6 +70,29 @@ public class PipeObjectConfigSetup : MonoBehaviour
     public void ClearPipeSetups()
     {
         pipeObjectSetups.Clear();
+    }
+
+    public void ClearAllPipeSetups()
+    {
+        ClearPipeSetups();
+
+        // Also clear pipe objects from the grid if they exist
+        if (gridObject != null && gridObject.pipeObjects != null)
+        {
+            // Destroy the pipe gameobjects
+            List<PipeObject> currentPipes = new List<PipeObject>(gridObject.pipeObjects);
+            foreach (var pipeObj in currentPipes)
+            {
+                gridObject.RemovePipeObject(pipeObj);
+            }
+            gridObject.pipeObjects.Clear();
+        }
+
+#if UNITY_EDITOR
+        EditorUtility.SetDirty(this);
+        if (gameObject != null)
+            EditorUtility.SetDirty(gameObject);
+#endif
     }
     
     /// <summary>
