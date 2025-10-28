@@ -45,8 +45,8 @@ public class LevelCollectorsConfigSetupEditor : Editor
         {
             if (manager != null)
             {
-                if (manager.paintingConfig != null) newConfigName = manager.paintingConfig.name.Replace("_PaintingConfig", "") + "_CollectorsConfig";
-                LevelColorCollectorsConfig newConfig = manager.CreateConfigAsset(newConfigName, CollectorsConfigPath);
+                if (manager.paintingConfig != null) newConfigName = manager.paintingConfig.Sprite.name;
+                LevelColorCollectorsConfig newConfig = manager.CreateConfigAsset(newConfigName);
                 if (newConfig != null)
                 {
                     manager.configAsset = newConfig;

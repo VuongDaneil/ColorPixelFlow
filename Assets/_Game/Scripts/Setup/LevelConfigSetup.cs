@@ -138,7 +138,7 @@ public class LevelConfigSetup : MonoBehaviour
     {
         if (NewTargetPainting == null) return;
 
-        var existingConfig = GetConfig(NewTargetPainting);
+        var existingConfig = GetLevelConfig(NewTargetPainting);
 
         if (existingConfig != null)
         {
@@ -150,7 +150,7 @@ public class LevelConfigSetup : MonoBehaviour
         PaintingSetup.TargetPainting = NewTargetPainting;
         PaintingSetup.SamplePaintingToGrid(NewTargetPainting);
 
-        string newCollectorConfigName = NewTargetPainting.name + "_CollectorsConfig";
+        string newCollectorConfigName = NewTargetPainting.name;
         var collectorConfig = LevelCollectorsSetup.CreateConfigAsset(newCollectorConfigName);
 
         var newLvl = CreateConfigAsset(NewTargetPainting.name + "_LevelConfig", PaintingSetup.CurrentPaintingConfig, collectorConfig);
@@ -191,20 +191,6 @@ public class LevelConfigSetup : MonoBehaviour
         return newConfig;
     }
 #endif
-
-    private LevelConfig GetConfig(Sprite painting)
-    {
-        string assetPath = LevelConfigPath + painting.name + "_LevelConfig" + ".asset";
-        var existingAsset = AssetDatabase.LoadAssetAtPath<LevelConfig>(assetPath);
-        return existingAsset;
-    }
-
-    private bool AlreadyExistsAtPath(string configName)
-    {
-        string assetPath = LevelConfigPath + configName + "_LevelConfig" + ".asset";
-        var existingAsset = AssetDatabase.LoadAssetAtPath<LevelConfig>(assetPath);
-        return existingAsset != null;
-    }
 
     #endregion
 }

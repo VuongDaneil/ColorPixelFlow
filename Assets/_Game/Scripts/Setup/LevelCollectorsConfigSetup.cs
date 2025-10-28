@@ -524,31 +524,34 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    public LevelColorCollectorsConfig CreateConfigAsset(string configName, string path = null)
+    public LevelColorCollectorsConfig CreateConfigAsset(string configName)
     {
-        if (string.IsNullOrEmpty(path))
-        {
-            path = CollectorsConfigPath;
-        }
         if (string.IsNullOrEmpty(configName))
         {
             Debug.LogError("Config name cannot be empty!");
             return null;
         }
 
-        // Ensure the path ends with a slash
-        if (!path.EndsWith("/"))
+        var existedConfig = GetCollectorConfig(configName);
+        if (existedConfig != null)
         {
-            path += "/";
+            configAsset = existedConfig;
+        }
+
+        string assetPath = CollectorsConfigPath + configName + "_CollectorConfig" + ".asset";
+
+        // Ensure the path ends with a slash
+        if (!CollectorsConfigPath.EndsWith("/"))
+        {
+            CollectorsConfigPath += "/";
         }
 
         // Create the directory if it doesn't exist
-        if (!Directory.Exists(path))
+        if (!Directory.Exists(CollectorsConfigPath))
         {
-            Directory.CreateDirectory(path);
+            Directory.CreateDirectory(CollectorsConfigPath);
         }
 
-        string assetPath = path + configName + ".asset";
         LevelColorCollectorsConfig newConfig = ScriptableObject.CreateInstance<LevelColorCollectorsConfig>();
         AssetDatabase.CreateAsset(newConfig, assetPath);
         AssetDatabase.SaveAssets();
@@ -558,6 +561,7 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         return newConfig;
     }
 #endif
+
     #endregion
 
     #region TOOL MODULES

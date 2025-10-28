@@ -2,6 +2,7 @@ using static PaintingSharedAttributes;
 using System.Collections.Generic;
 using NaughtyAttributes;
 using UnityEngine;
+using UnityEditor;
 
 public class PaintingConfigSetup : MonoBehaviour
 {
@@ -233,9 +234,23 @@ public class PaintingConfigSetup : MonoBehaviour
         return new Vector3(L, A, B);
     }
 
-    private void CreatePaintingConfigAsset(List<PaintingPixelConfig> pixels, Vector2 gridSize, Sprite originalSprite)
+    private PaintingConfig CreatePaintingConfigAsset(List<PaintingPixelConfig> pixels, Vector2 gridSize, Sprite originalSprite)
     {
 #if UNITY_EDITOR
+
+        var existedConfig = GetPaintingConfig(TargetPainting);
+        if (existedConfig)
+        {
+            CurrentPaintingConfig = existedConfig;
+            return existedConfig;
+        }
+
+        // Use the target painting name with "_PaintingConfig" suffix for the asset name
+        string assetName = TargetPainting != null ? TargetPainting.name + "_PaintingConfig" : "PaintingConfig";
+
+        // Create the asset file using the specified path and computed name
+        string assetPath = PaintingConfigPath + assetName + ".asset";
+
         // Create a new PaintingConfig asset
         PaintingConfig paintingConfig = ScriptableObject.CreateInstance<PaintingConfig>();
         
@@ -243,11 +258,6 @@ public class PaintingConfigSetup : MonoBehaviour
         paintingConfig.PaintingSize = gridSize;
         paintingConfig.Sprite = originalSprite;
 
-        // Use the target painting name with "_PaintingConfig" suffix for the asset name
-        string assetName = TargetPainting != null ? TargetPainting.name + "_PaintingConfig" : "PaintingConfig";
-        
-        // Create the asset file using the specified path and computed name
-        string assetPath = PaintingConfigPath + assetName + ".asset";
         UnityEditor.AssetDatabase.CreateAsset(paintingConfig, assetPath);
         UnityEditor.AssetDatabase.SaveAssets();
         UnityEditor.AssetDatabase.Refresh();
@@ -256,6 +266,7 @@ public class PaintingConfigSetup : MonoBehaviour
         
         // Assign the created PaintingConfig to the result field
         CurrentPaintingConfig = paintingConfig;
+        return paintingConfig;
 #else
         Debug.LogWarning("PaintingConfig asset creation is only supported in the Unity Editor.");
 #endif

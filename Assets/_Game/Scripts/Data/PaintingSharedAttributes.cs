@@ -1,6 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public static class PaintingSharedAttributes
 {
@@ -91,5 +94,30 @@ public static class PaintingSharedAttributes
         }
     }
 
+    #endregion
+
+    #region _config
+#if UNITY_EDITOR
+    public static LevelConfig GetLevelConfig(Sprite painting)
+    {
+        string assetPath = LevelConfigPath + painting.name + "_LevelConfig" + ".asset";
+        var existingAsset = AssetDatabase.LoadAssetAtPath<LevelConfig>(assetPath);
+        return existingAsset;
+    }
+
+    public static LevelColorCollectorsConfig GetCollectorConfig(string configName)
+    {
+        string assetPath = CollectorsConfigPath + configName + "_CollectorConfig" + ".asset";
+        var existingAsset = AssetDatabase.LoadAssetAtPath<LevelColorCollectorsConfig>(assetPath);
+        return existingAsset;
+    }
+
+    public static PaintingConfig GetPaintingConfig(Sprite painting)
+    {
+        string assetPath = PaintingConfigPath + painting.name + "_PaintingConfig" + ".asset";
+        var existingAsset = AssetDatabase.LoadAssetAtPath<PaintingConfig>(assetPath);
+        return existingAsset;
+    }
+#endif
     #endregion
 }
