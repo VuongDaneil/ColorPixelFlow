@@ -16,8 +16,8 @@ public class PaintingGridObject : MonoBehaviour
     public ColorPalleteData colorPallete;
 
     // Lists for faster lookup by row and column (serializable)
-    public List<IntPixelListPair> pixelsByRow = new List<IntPixelListPair>();
-    public List<IntPixelListPair> pixelsByColumn = new List<IntPixelListPair>();
+    private List<IntPixelListPair> pixelsByRow = new List<IntPixelListPair>();
+    private List<IntPixelListPair> pixelsByColumn = new List<IntPixelListPair>();
 
     public List<List<PaintingPixel>> Rows = new List<List<PaintingPixel>>();
 
@@ -1188,14 +1188,6 @@ public class PaintingGridObject : MonoBehaviour
         }
     }
     
-    // Calculate world position based on grid coordinates
-    public Vector3 CalculatePixelPosition(int col, int row, float yOffset = 0)
-    {
-        float xPos = Center.position.x + col * pixelArrangeSpace;
-        float zPos = Center.position.z + row * pixelArrangeSpace; // Positive rows go "up" in z-axis
-        xPos = xPos - transform.position.x; //with parent offset
-        return new Vector3(xPos, Center.position.y + yOffset, zPos);
-    }
     public PaintingPixel CreateNewPaintingPixel(PaintingPixelConfig pixelConfig, bool calculatePositon = false)
     {
         PaintingPixel pixel = new PaintingPixel
@@ -1214,4 +1206,62 @@ public class PaintingGridObject : MonoBehaviour
         return pixel;
     }
     #endregion
+
+    public PaintingPixelComponent GetPixelObjectBasedOnPosition(Vector3 pos)
+    {
+        PaintingPixelComponent rs = null;
+        float minDis = int.MaxValue;
+        foreach (PaintingPixel pixel in paintingPixels)
+        {
+            float currentDis = Vector3.Distance(pixel.PixelComponent.transform.position, pos);
+            if (currentDis < minDis)
+            {
+                minDis = currentDis;
+                rs = pixel.PixelComponent;
+            }
+        }
+
+        return rs;
+    }
+
+    public PaintingPixelComponent GetPixelBasedOnPosition(Vector3 pos, float precision = 0.01f)
+    {
+        PaintingPixelComponent rs = null;
+        foreach (PaintingPixel pixel in paintingPixels)
+        {
+            float currentDis = Vector3.Distance(pixel.PixelComponent.transform.position, pos);
+            if (currentDis < precision)
+            {
+                rs = pixel.PixelComponent;
+            }
+        }
+
+        if (rs == null)
+        {
+            GetPredictedPixel(pos);
+        }
+
+        return rs;
+    }
+
+    public (int column, int row, Vector3 pixelPos) GetPredictedPixel(Vector3 pos)
+    {
+        float localX = pos.x + transform.position.x - Center.position.x;
+        float localZ = pos.z - Center.position.z;
+
+        int col = Mathf.RoundToInt(localX / pixelArrangeSpace);
+        int row = Mathf.RoundToInt(localZ / pixelArrangeSpace);
+        Vector3 pixelPos = CalculatePixelPosition(col, row);
+
+        return (col, row, pixelPos);
+    }
+
+    // Calculate world position based on grid coordinates
+    public Vector3 CalculatePixelPosition(int col, int row, float yOffset = 0)
+    {
+        float xPos = Center.position.x + col * pixelArrangeSpace;
+        float zPos = Center.position.z + row * pixelArrangeSpace; // Positive rows go "up" in z-axis
+        xPos = xPos - transform.position.x; //with parent offset
+        return new Vector3(xPos, Center.position.y + yOffset, zPos);
+    }
 }

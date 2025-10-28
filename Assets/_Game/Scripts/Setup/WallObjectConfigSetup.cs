@@ -99,7 +99,6 @@ public class WallObjectConfigSetup : MonoBehaviour
     }
 
 
-
     /// <summary>
     /// Set up the actual wall object in the scene
     /// </summary>

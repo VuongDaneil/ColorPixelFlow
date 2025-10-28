@@ -7,7 +7,10 @@ public class PaintingAdvancedSetup : MonoBehaviour
 {
     [ReadOnly] public PaintingConfig CurrentLevelPaintingConfig;
 
+    public PaintingGridObject CurrentGrid;
+
     [Header("MODULE(s)")]
+    public PaintingConfigSetup PaintingSetupModule;
     public KeyObjectConfigSetup KeySetupModule;
     public PipeObjectConfigSetup PipeSetupModule;
     public WallObjectConfigSetup WallSetupModule;

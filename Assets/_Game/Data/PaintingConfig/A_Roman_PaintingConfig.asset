@@ -2904,92 +2904,92 @@ MonoBehaviour:
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -4
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -5
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -6
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -7
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -8
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -9
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -10
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -11
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -12
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -13
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -14
     row: -14
     color: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 1}
     colorCode: Black
-    Hidden: 0
+    Hidden: 1
   - column: -15
     row: -14
     color: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 1}
     colorCode: Black
-    Hidden: 0
+    Hidden: 1
   - column: -16
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: -14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -18
     row: -14
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 0
+    Hidden: 1
   - column: -19
     row: -14
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
     colorCode: Blue3
-    Hidden: 0
+    Hidden: 1
   - column: -20
     row: -14
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
     colorCode: Blue3
-    Hidden: 0
+    Hidden: 1
   - column: -21
     row: -14
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
@@ -4314,67 +4314,67 @@ MonoBehaviour:
     row: -8
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 0
+    Hidden: 1
   - column: 14
     row: -8
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 0
+    Hidden: 1
   - column: 13
     row: -8
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 0
+    Hidden: 1
   - column: 12
     row: -8
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: 11
     row: -8
     color: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 1}
     colorCode: Black
-    Hidden: 0
+    Hidden: 1
   - column: 10
     row: -8
     color: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 1}
     colorCode: Black
-    Hidden: 0
+    Hidden: 1
   - column: 9
     row: -8
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: 8
     row: -8
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: 7
     row: -8
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: 6
     row: -8
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: 5
     row: -8
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: 4
     row: -8
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: 3
     row: -8
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: 2
     row: -8
     color: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 1}
@@ -6469,7 +6469,7 @@ MonoBehaviour:
     row: 0
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 0
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -6719,7 +6719,7 @@ MonoBehaviour:
     row: 1
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 1
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -6969,7 +6969,7 @@ MonoBehaviour:
     row: 2
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 2
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -7219,7 +7219,7 @@ MonoBehaviour:
     row: 3
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 3
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -7469,7 +7469,7 @@ MonoBehaviour:
     row: 4
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 4
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -7719,7 +7719,7 @@ MonoBehaviour:
     row: 5
     color: {r: 0.84313726, g: 0.5764706, b: 0.41568628, a: 1}
     colorCode: Brown4
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 5
     color: {r: 0.84313726, g: 0.5764706, b: 0.41568628, a: 1}
@@ -7969,7 +7969,7 @@ MonoBehaviour:
     row: 6
     color: {r: 0.84313726, g: 0.5764706, b: 0.41568628, a: 1}
     colorCode: Brown4
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 6
     color: {r: 0.84313726, g: 0.5764706, b: 0.41568628, a: 1}
@@ -8219,7 +8219,7 @@ MonoBehaviour:
     row: 7
     color: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 1}
     colorCode: Black
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 7
     color: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 1}
@@ -8469,7 +8469,7 @@ MonoBehaviour:
     row: 8
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 8
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -8719,7 +8719,7 @@ MonoBehaviour:
     row: 9
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 9
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -8969,7 +8969,7 @@ MonoBehaviour:
     row: 10
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 10
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -9219,7 +9219,7 @@ MonoBehaviour:
     row: 11
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 11
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -9469,7 +9469,7 @@ MonoBehaviour:
     row: 12
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 12
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -9719,7 +9719,7 @@ MonoBehaviour:
     row: 13
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 13
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -9969,7 +9969,7 @@ MonoBehaviour:
     row: 14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
     colorCode: Orange5
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 14
     color: {r: 1, g: 0.81960785, b: 0.6156863, a: 1}
@@ -10219,7 +10219,7 @@ MonoBehaviour:
     row: 15
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 15
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
@@ -10469,7 +10469,7 @@ MonoBehaviour:
     row: 16
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 16
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
@@ -10719,7 +10719,7 @@ MonoBehaviour:
     row: 17
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
     colorCode: Green2
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 17
     color: {r: 0.11372549, g: 0.6666667, b: 0.27058825, a: 1}
@@ -10969,7 +10969,7 @@ MonoBehaviour:
     row: 18
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}
     colorCode: Blue3
-    Hidden: 0
+    Hidden: 1
   - column: -17
     row: 18
     color: {r: 0.20392157, g: 0.47843137, b: 0.8156863, a: 1}

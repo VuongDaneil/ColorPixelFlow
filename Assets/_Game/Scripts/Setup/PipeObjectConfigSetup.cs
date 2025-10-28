@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using NaughtyAttributes;
 using UnityEngine;
+using Unity.VisualScripting;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -130,6 +132,46 @@ public class PipeObjectConfigSetup : MonoBehaviour
         }
 
         // Create and setup the pipe in the scene - this will also create the pipe pixels
+        List<PaintingPixelConfig> pipePixelConfigs = GetPaintingPixelsInBetweenWithSpace(startPixel, endPixel);
+        PipeObjectSetup wallSetup = new PipeObjectSetup(pipePixelConfigs, ColorCode, Scale);
+
+        var newWallObject = SetupNewPipeInScene(wallSetup);
+
+        if (newWallObject != null)
+        {
+            AddPipeSetup(wallSetup);
+        }
+    }
+
+
+    public void CreatePipe(PaintingPixel startPixel, PaintingPixel endPixel)
+    {
+        if (startPixel == null || endPixel == null)
+        {
+            Debug.LogWarning("StartPixelComponent or EndPixelComponent is null. Cannot create pipe.");
+            return;
+        }
+
+        if (startPixel == null || endPixel == null)
+        {
+            Debug.LogWarning("Could not get PaintingPixel data from components. Cannot create pipe.");
+            return;
+        }
+
+        if (gridObject == null)
+        {
+            Debug.LogWarning("GridObject reference is null. Cannot create pipe.");
+            return;
+        }
+
+        // Validate that the pipe should be straight (horizontal or vertical)
+        if (!IsValidPipeOrientation(startPixel, endPixel))
+        {
+            Debug.LogWarning("Pipe must be either horizontal (same row) or vertical (same column). Cannot create pipe.");
+            return;
+        }
+
+        // Create and setup the pipe in the scene - this will also create the pipe pixels
         List<PaintingPixelConfig> pipePixelConfigs = GetPaintingPixelsInBetween(startPixel, endPixel);
         PipeObjectSetup wallSetup = new PipeObjectSetup(pipePixelConfigs, ColorCode, Scale);
 
@@ -141,7 +183,7 @@ public class PipeObjectConfigSetup : MonoBehaviour
         }
     }
 
-    public List<PaintingPixelConfig> GetPaintingPixelsInBetween(PaintingPixel startPixel, PaintingPixel endPixel)
+    public List<PaintingPixelConfig> GetPaintingPixelsInBetweenWithSpace(PaintingPixel startPixel, PaintingPixel endPixel)
     {
         List<PaintingPixelConfig> pixelsInBetween = new List<PaintingPixelConfig>();
 
@@ -282,6 +324,69 @@ public class PipeObjectConfigSetup : MonoBehaviour
         return pixelsInBetween;
     }
 
+    public List<PaintingPixelConfig> GetPaintingPixelsInBetween(PaintingPixel startPixel, PaintingPixel endPixel)
+    {
+        List<PaintingPixelConfig> pixelsInBetween = new List<PaintingPixelConfig>();
+
+        // Determine if pipe is horizontal or vertical
+        bool isHorizontal = startPixel.row == endPixel.row;
+        bool isVertical = startPixel.column == endPixel.column;
+
+        if (isHorizontal)
+        {
+            // Create PaintingPixel objects for all body parts between start and end
+            int direction = startPixel.column <= endPixel.column ? 1 : -1;
+            for (int c = startPixel.column; c != endPixel.column + direction; c += direction)
+            {
+                PaintingPixelConfig bodyPipePixel = new PaintingPixelConfig()
+                {
+                    column = c,
+                    row = startPixel.row,
+                    color = colorPalette.GetColorByCode(ColorCode),
+                    colorCode = ColorCode,
+                    Hidden = false,
+                };
+                pixelsInBetween.Add(bodyPipePixel);
+            }
+        }
+        else if (isVertical)
+        {
+            int direction = startPixel.row <= endPixel.row ? 1 : -1;
+            for (int r = startPixel.row; r != endPixel.row + direction; r += direction)
+            {
+                PaintingPixelConfig bodyPipePixel = new PaintingPixelConfig()
+                {
+                    column = startPixel.column,
+                    row = r,
+                    color = colorPalette.GetColorByCode(ColorCode),
+                    colorCode = ColorCode,
+                    Hidden = false,
+                };
+                pixelsInBetween.Add(bodyPipePixel);
+            }
+        }
+
+        // Sort pipe pixels from head to tail based on original grid position
+        if (pixelsInBetween.Count > 1)
+        {
+            if (isHorizontal)
+            {
+                if (startPixel.column < endPixel.column)
+                    pixelsInBetween.Sort((p1, p2) => p1.column.CompareTo(p2.column));
+                else
+                    pixelsInBetween.Sort((p1, p2) => p2.column.CompareTo(p1.column));
+            }
+            else if (isVertical)
+            {
+                if (startPixel.row < endPixel.row)
+                    pixelsInBetween.Sort((p1, p2) => p1.row.CompareTo(p2.row));
+                else
+                    pixelsInBetween.Sort((p1, p2) => p2.row.CompareTo(p1.row));
+            }
+        }
+
+        return pixelsInBetween;
+    }
 
     /// <summary>
     /// Set up the actual pipe object in the scene
@@ -369,5 +474,12 @@ public class PipeObjectConfigSetup : MonoBehaviour
         {
             gridObject.CreatePipeObject(pipe);
         }
+    }
+
+    public void Save()
+    {
+        Undo.RecordObject(gridObject.paintingConfig, "Save pipe configs");
+        ImportPipesToPaintingConfig(gridObject.paintingConfig);
+        EditorUtility.SetDirty(gridObject.paintingConfig);
     }
 }
