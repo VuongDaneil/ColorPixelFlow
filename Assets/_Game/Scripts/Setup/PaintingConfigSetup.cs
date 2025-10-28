@@ -15,7 +15,7 @@ public class PaintingConfigSetup : MonoBehaviour
     public List<string> colorCodeInUse = new List<string>();
 
     [Header("Result")]
-    [ReadOnly] public PaintingConfig ResultPaintingConfig;
+    [ReadOnly] public PaintingConfig CurrentPaintingConfig;
 
     public void SamplePaintingToGrid(Sprite _sprite = null)
     {
@@ -255,7 +255,7 @@ public class PaintingConfigSetup : MonoBehaviour
         Debug.Log("PaintingConfig asset created at: " + assetPath);
         
         // Assign the created PaintingConfig to the result field
-        ResultPaintingConfig = paintingConfig;
+        CurrentPaintingConfig = paintingConfig;
 #else
         Debug.LogWarning("PaintingConfig asset creation is only supported in the Unity Editor.");
 #endif

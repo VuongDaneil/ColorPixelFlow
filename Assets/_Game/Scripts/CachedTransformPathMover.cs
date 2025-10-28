@@ -2,9 +2,10 @@ using UnityEngine;
 
 public class CachedTransformPathMover : MonoBehaviour
 {
-    [Header("Spline Data")]
-    public CachedSplineTransformPath transformPath;
-    
+    //[Header("Spline Data")]
+    //public CachedSplineTransformPath transformPathOld;
+    private PathTransformBasedCached Path => PathTransformBasedCached.Instance;
+
     [Header("Movement Settings")]
     [Tooltip("Movement speed in units per second")]
     public float speed = 1f;
@@ -46,7 +47,10 @@ public class CachedTransformPathMover : MonoBehaviour
     // Private variables for smooth rotation
     private Quaternion targetRotation;
     private Quaternion previousTargetRotation;
-    
+
+    private bool pathValid = false;
+    private Transform moverTransform;
+
     public enum RotationInterpolationType
     {
         Spherical,  // Quaternion.Slerp - Smooth spherical interpolation
@@ -66,14 +70,14 @@ public class CachedTransformPathMover : MonoBehaviour
     private void Start()
     {
         Initialize();
-        previousTargetRotation = transform.rotation;
-        targetRotation = transform.rotation;
+        moverTransform = transform;
+        targetRotation = moverTransform.rotation;
+        previousTargetRotation = moverTransform.rotation;
     }
     
     private void Update()
-
     {
-        if (autoMove && transformPath != null && transformPath.IsValid())
+        if (autoMove && pathValid)
         {
             MoveAlongPath();
         }
@@ -81,35 +85,31 @@ public class CachedTransformPathMover : MonoBehaviour
     
     private void Initialize()
     {
-        if (transformPath == null)
-        {
-            Debug.LogError("CachedSplineTransformPath is not assigned!", this);
-            return;
-        }
-        
-        if (!transformPath.IsValid())
+        pathValid = false;
+        if (!Path.IsValid())
         {
             Debug.LogError("CachedSplineTransformPath contains invalid data!", this);
             return;
         }
         
         // Mark the distance cache as dirty to trigger recalculation
-        transformPath.MarkDistanceCacheDirty();
+        Path.MarkDistanceCacheDirty();
         
         // Calculate total distance if not already set
-        if (transformPath.totalDistance <= 0)
+        if (Path.totalDistance <= 0)
         {
-            transformPath.totalDistance = transformPath.CalculateTotalDistance();
+            Path.totalDistance = Path.CalculateTotalDistance();
         }
 
         if (autoMove) SetPositionByTF(currentTF);
 
+        pathValid = true;
         isInitialized = true;
     }
     
     public void MoveAlongPath()
     {
-        if (!isInitialized || transformPath == null || !transformPath.IsValid())
+        if (!isInitialized || !pathValid)
             return;
             
         float deltaTime = Time.deltaTime;
@@ -124,26 +124,26 @@ public class CachedTransformPathMover : MonoBehaviour
             switch (movementType)
             {
                 case MovementType.Clamp:
-                    float maxDistance = endTF * transformPath.totalDistance;
+                    float maxDistance = endTF * Path.totalDistance;
                     currentDistance = Mathf.Clamp(currentDistance, 0f, maxDistance);
                     // Update TF to match distance
-                    currentTF = currentDistance / transformPath.totalDistance;
+                    currentTF = currentDistance / Path.totalDistance;
                     break;
                     
                 case MovementType.Loop:
-                    if (currentDistance > transformPath.totalDistance)
+                    if (currentDistance > Path.totalDistance)
                         currentDistance = 0f;
                     else if (currentDistance < 0f)
-                        currentDistance = transformPath.totalDistance;
+                        currentDistance = Path.totalDistance;
                     
                     // Update TF to match distance
-                    currentTF = (currentDistance < 0) ? 0 : currentDistance / transformPath.totalDistance;
+                    currentTF = (currentDistance < 0) ? 0 : currentDistance / Path.totalDistance;
                     if (currentDistance < 0) currentTF = 1f + currentTF; // For negative values
                     currentTF = Mathf.Repeat(currentTF, 1f);
                     break;
                     
                 case MovementType.PingPong:
-                    float pingPongMaxDistance = endTF * transformPath.totalDistance;
+                    float pingPongMaxDistance = endTF * Path.totalDistance;
                     if (currentDistance > pingPongMaxDistance)
                     {
                         currentDistance = pingPongMaxDistance;
@@ -155,7 +155,7 @@ public class CachedTransformPathMover : MonoBehaviour
                         direction = 1; // Reverse direction to go forward
                     }
                     // Update TF to match distance
-                    currentTF = currentDistance / transformPath.totalDistance;
+                    currentTF = currentDistance / Path.totalDistance;
                     break;
             }
             
@@ -165,19 +165,19 @@ public class CachedTransformPathMover : MonoBehaviour
         else
         {
             // Update TF-based position - movementDelta already includes direction
-            currentTF += movementDelta / transformPath.totalDistance;
+            currentTF += movementDelta / Path.totalDistance;
             
             // Handle movement type based on TF
             switch (movementType)
             {
                 case MovementType.Clamp:
                     currentTF = Mathf.Clamp(currentTF, 0f, endTF);
-                    currentDistance = currentTF * transformPath.totalDistance;
+                    currentDistance = currentTF * Path.totalDistance;
                     break;
                     
                 case MovementType.Loop:
                     currentTF = Mathf.Repeat(currentTF, 1f);
-                    currentDistance = currentTF * transformPath.totalDistance;
+                    currentDistance = currentTF * Path.totalDistance;
                     break;
                     
                 case MovementType.PingPong:
@@ -191,7 +191,7 @@ public class CachedTransformPathMover : MonoBehaviour
                         currentTF = 0f;
                         direction = 1; // Reverse direction to go forward
                     }
-                    currentDistance = currentTF * transformPath.totalDistance;
+                    currentDistance = currentTF * Path.totalDistance;
                     break;
             }
             
@@ -202,7 +202,7 @@ public class CachedTransformPathMover : MonoBehaviour
     
     public void SetPositionByTF(float tf)
     {
-        if (transformPath == null || !transformPath.IsValid()) return;
+        if (!pathValid) return;
         
         if (movementType == MovementType.Clamp)
         {
@@ -213,39 +213,39 @@ public class CachedTransformPathMover : MonoBehaviour
             currentTF = Mathf.Clamp01(tf);
         }
         
-        currentDistance = currentTF * transformPath.totalDistance;
+        currentDistance = currentTF * Path.totalDistance;
         UpdatePositionByTF(currentTF);
     }
     
     public void SetPositionByDistance(float distance)
     {
-        if (transformPath == null || !transformPath.IsValid()) return;
+        if (!pathValid) return;
         
         if (movementType == MovementType.Clamp)
         {
-            float maxDistance = endTF * transformPath.totalDistance;
+            float maxDistance = endTF * Path.totalDistance;
             currentDistance = Mathf.Clamp(distance, 0f, maxDistance);
         }
         else
         {
-            currentDistance = Mathf.Clamp(distance, 0f, transformPath.totalDistance);
+            currentDistance = Mathf.Clamp(distance, 0f, Path.totalDistance);
         }
         
-        currentTF = currentDistance / transformPath.totalDistance;
+        currentTF = currentDistance / Path.totalDistance;
         UpdatePositionByDistance(currentDistance);
     }
     
     private void UpdatePositionByTF(float tf)
     {
-        if (transformPath == null || !transformPath.IsValid()) return;
+        if (!pathValid) return;
         
         // Get interpolated position, tangent, and up-vector at the given TF
-        Vector3 position = transformPath.GetPositionAtTF(tf);
-        Vector3 tangent = transformPath.GetTangentAtTF(tf);
-        Vector3 upVector = transformPath.GetUpVectorAtTF(tf);
+        Vector3 position = Path.GetPositionAtTF(tf);
+        Vector3 tangent = Path.GetTangentAtTF(tf);
+        Vector3 upVector = Path.GetUpVectorAtTF(tf);
         
         // Update the transform position
-        transform.position = position;
+        moverTransform.position = position;
         
         // Update orientation if enabled
         if (orientToPath)
@@ -257,8 +257,8 @@ public class CachedTransformPathMover : MonoBehaviour
                 if (orientationSpace == Space.Self)
                 {
                     // Convert to local space if needed
-                    newRotation = transform.parent ? 
-                        transform.parent.rotation * Quaternion.LookRotation(tangent, upVector) :
+                    newRotation = moverTransform.parent ? 
+                        moverTransform.parent.rotation * Quaternion.LookRotation(tangent, upVector) :
                         Quaternion.LookRotation(tangent, upVector);
                 }
                 else
@@ -279,17 +279,17 @@ public class CachedTransformPathMover : MonoBehaviour
                     switch (rotationInterpolation)
                     {
                         case RotationInterpolationType.Spherical:
-                            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, orientationSpeed * Time.deltaTime);
+                            moverTransform.rotation = Quaternion.Slerp(moverTransform.rotation, targetRotation, orientationSpeed * Time.deltaTime);
                             break;
                         case RotationInterpolationType.Linear:
-                            transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, orientationSpeed * Time.deltaTime);
+                            moverTransform.rotation = Quaternion.Lerp(moverTransform.rotation, targetRotation, orientationSpeed * Time.deltaTime);
                             break;
                     }
                 }
                 else
                 {
                     // Instant orientation (original behavior)
-                    transform.rotation = newRotation;
+                    moverTransform.rotation = newRotation;
                     targetRotation = newRotation;
                     previousTargetRotation = newRotation;
                 }
@@ -299,60 +299,60 @@ public class CachedTransformPathMover : MonoBehaviour
     
     private void UpdatePositionByDistance(float distance)
     {
-        if (transformPath == null || !transformPath.IsValid()) return;
+        if (!pathValid) return;
         
         // Convert distance to TF and call the TF-based update
-        float tf = distance / transformPath.totalDistance;
+        float tf = distance / Path.totalDistance;
         UpdatePositionByTF(tf);
     }
     
     // Public methods for getting data at specific points
     public Vector3 GetPositionAtTF(float tf)
     {
-        if (transformPath == null || !transformPath.IsValid())
-            return transform.position;
+        if (!pathValid)
+            return moverTransform.position;
         
-        return transformPath.GetPositionAtTF(tf);
+        return Path.GetPositionAtTF(tf);
     }
     
     public Vector3 GetTangentAtTF(float tf)
     {
-        if (transformPath == null || !transformPath.IsValid())
+        if (!pathValid)
             return Vector3.forward;
         
-        return transformPath.GetTangentAtTF(tf);
+        return Path.GetTangentAtTF(tf);
     }
     
     public Vector3 GetUpVectorAtTF(float tf)
     {
-        if (transformPath == null || !transformPath.IsValid())
+        if (!pathValid)
             return Vector3.up;
         
-        return transformPath.GetUpVectorAtTF(tf);
+        return Path.GetUpVectorAtTF(tf);
     }
     
     public Vector3 GetPositionAtDistance(float distance)
     {
-        if (transformPath == null || !transformPath.IsValid())
-            return transform.position;
+        if (!pathValid)
+            return moverTransform.position;
         
-        return transformPath.GetPositionAtDistance(distance);
+        return Path.GetPositionAtDistance(distance);
     }
     
     public Vector3 GetTangentAtDistance(float distance)
     {
-        if (transformPath == null || !transformPath.IsValid())
+        if (!pathValid)
             return Vector3.forward;
         
-        return transformPath.GetTangentAtDistance(distance);
+        return Path.GetTangentAtDistance(distance);
     }
     
     public Vector3 GetUpVectorAtDistance(float distance)
     {
-        if (transformPath == null || !transformPath.IsValid())
+        if (!pathValid)
             return Vector3.up;
         
-        return transformPath.GetUpVectorAtDistance(distance);
+        return Path.GetUpVectorAtDistance(distance);
     }
     
     // Methods to start/stop automatic movement
@@ -370,18 +370,23 @@ public class CachedTransformPathMover : MonoBehaviour
     {
         direction = (newDirection >= 0) ? 1 : -1;
     }
-    
+
+    public bool IsPathValid()
+    {
+        return pathValid;
+    }
+
 #if UNITY_EDITOR
     // For debugging purposes in the editor
     private void OnValidate()
     {
-        if (!Application.isPlaying && transformPath != null && transformPath.IsValid())
+        if (!Application.isPlaying && Path != null && Path.IsValid())
         {
             // Mark distance cache as dirty and recalculate total distance
-            transformPath.MarkDistanceCacheDirty();
-            if (transformPath.totalDistance <= 0)
+            Path.MarkDistanceCacheDirty();
+            if (Path.totalDistance <= 0)
             {
-                transformPath.totalDistance = transformPath.CalculateTotalDistance();
+                Path.totalDistance = Path.CalculateTotalDistance();
             }
             
             // Update position in edit mode when TF changes

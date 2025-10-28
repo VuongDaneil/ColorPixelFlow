@@ -17,6 +17,7 @@ public class SplineDataContainerToTransformConverter : MonoBehaviour
     [Header("Conversion Output")]
     [Tooltip("The resulting CachedSplineTransformPath asset")]
     public CachedSplineTransformPath outputTransformPath;
+    public PathTransformBasedCached PathCachedObj;
     
     [Header("Options")]
     [Tooltip("If true, will create the path in world space. If false, will create in local space relative to pathParent")]
@@ -116,7 +117,8 @@ public class SplineDataContainerToTransformConverter : MonoBehaviour
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
-        
+
+        PathCachedObj.PathPoints = pathTransforms;
         // Populate the new asset with the transforms
         outputTransformPath.pathTransforms = pathTransforms;
         outputTransformPath.sampleCount = splineDataContainer.sampleCount;

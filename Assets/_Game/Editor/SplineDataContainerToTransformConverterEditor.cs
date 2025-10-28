@@ -20,6 +20,7 @@ public class SplineDataContainerToTransformConverterEditor : Editor
         EditorGUILayout.PropertyField(serializedObject.FindProperty("worldSpace"), new GUIContent("World Space", "If true, creates path in world space; if false, creates in local space relative to path parent"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("pathName"), new GUIContent("Path Name", "Name for the created path GameObject"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("outputTransformPath"), new GUIContent("Output Transform Path", "The resulting CachedSplineTransformPath asset"));
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("PathCachedObj"), new GUIContent("Path Cached Obj", "The resulting CachedSplineTransformPath asset"));
         
         EditorGUILayout.Space();
         

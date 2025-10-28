@@ -9,9 +9,12 @@ public class LevelConfigSetup : MonoBehaviour
     #region PROPERTIES
     [Header("LEVEL DATA(s)")]
     public LevelConfig CurrentLevel;
-    public PaintingConfig CurrentLevelPaintingConfig;
-    public LevelColorCollectorsConfig CurrentLevelCollectorConfig;
-    public Sprite CurrentPainting;
+    [ReadOnly] public PaintingConfig CurrentLevelPaintingConfig;
+    [ReadOnly] public LevelColorCollectorsConfig CurrentLevelCollectorConfig;
+    [ReadOnly] public Sprite CurrentLevelPainting;
+
+    [Space]
+    public Sprite NewTargetPainting;
 
     [Header("CONTROLLER(s)")]
     public PaintingGridObject CurrentGridObject;
@@ -73,15 +76,23 @@ public class LevelConfigSetup : MonoBehaviour
     /// </summary>
     public void SetUpComponents()
     {
-        if (CurrentLevel == null) return;
+        if (CurrentLevel == null)
+        {
+            CurrentLevelPaintingConfig = null;
+            CurrentLevelCollectorConfig = null;
+            CurrentLevelPainting = null;
+            return;
+        }
 
         CurrentLevelCollectorConfig = CurrentLevel.CollectorsConfig;
         CurrentLevelPaintingConfig = CurrentLevel.BlocksPaintingConfig;
 
+        if (CurrentLevelPaintingConfig != null) CurrentLevelPainting = CurrentLevelPaintingConfig.Sprite;
+
         if (PaintingSetup)
         {
             PaintingSetup.CurrentGridObject = CurrentGridObject;
-            PaintingSetup.ResultPaintingConfig = CurrentLevelPaintingConfig;
+            PaintingSetup.CurrentPaintingConfig = CurrentLevelPaintingConfig;
         }
 
         if (PaintingAdvancedSetup)
@@ -125,25 +136,30 @@ public class LevelConfigSetup : MonoBehaviour
     [Button("CREATE NEW LEVEL")]
     public void CreateNewLevel()
     {
-        if (CurrentPainting == null) return;
+        if (NewTargetPainting == null) return;
 
-        PaintingSetup.TargetPainting = CurrentPainting;
-        PaintingSetup.SamplePaintingToGrid(CurrentPainting);
+        var existingConfig = GetConfig(NewTargetPainting);
 
-        string newCollectorConfigName = CurrentPainting.name + "_CollectorsConfig";
+        if (existingConfig != null)
+        {
+            CurrentLevel = existingConfig;
+            SetUpComponents();
+            return;
+        }
+
+        PaintingSetup.TargetPainting = NewTargetPainting;
+        PaintingSetup.SamplePaintingToGrid(NewTargetPainting);
+
+        string newCollectorConfigName = NewTargetPainting.name + "_CollectorsConfig";
         var collectorConfig = LevelCollectorsSetup.CreateConfigAsset(newCollectorConfigName);
 
-        var newLvl = CreateConfigAsset(CurrentPainting.name + "LevelConfig", PaintingSetup.ResultPaintingConfig, collectorConfig);
+        var newLvl = CreateConfigAsset(NewTargetPainting.name + "_LevelConfig", PaintingSetup.CurrentPaintingConfig, collectorConfig);
         CurrentLevel = newLvl;
-        OnValidate();
+        SetUpComponents();
     }
 
-    public LevelConfig CreateConfigAsset(string configName, PaintingConfig paintingConfig, LevelColorCollectorsConfig collectorConfig, string path = null)
+    public LevelConfig CreateConfigAsset(string configName, PaintingConfig paintingConfig, LevelColorCollectorsConfig collectorConfig)
     {
-        if (string.IsNullOrEmpty(path))
-        {
-            path = LevelConfigPath;
-        }
         if (string.IsNullOrEmpty(configName))
         {
             Debug.LogError("Config name cannot be empty!");
@@ -151,18 +167,19 @@ public class LevelConfigSetup : MonoBehaviour
         }
 
         // Ensure the path ends with a slash
-        if (!path.EndsWith("/"))
+        if (!LevelConfigPath.EndsWith("/"))
         {
-            path += "/";
+            LevelConfigPath += "/";
         }
 
         // Create the directory if it doesn't exist
-        if (!Directory.Exists(path))
+        if (!Directory.Exists(LevelConfigPath))
         {
-            Directory.CreateDirectory(path);
+            Directory.CreateDirectory(LevelConfigPath);
         }
 
-        string assetPath = path + configName + ".asset";
+        string assetPath = LevelConfigPath + configName + ".asset";
+
         LevelConfig newConfig = ScriptableObject.CreateInstance<LevelConfig>();
         newConfig.BlocksPaintingConfig = paintingConfig;
         newConfig.CollectorsConfig = collectorConfig;
@@ -174,6 +191,20 @@ public class LevelConfigSetup : MonoBehaviour
         return newConfig;
     }
 #endif
+
+    private LevelConfig GetConfig(Sprite painting)
+    {
+        string assetPath = LevelConfigPath + painting.name + "_LevelConfig" + ".asset";
+        var existingAsset = AssetDatabase.LoadAssetAtPath<LevelConfig>(assetPath);
+        return existingAsset;
+    }
+
+    private bool AlreadyExistsAtPath(string configName)
+    {
+        string assetPath = LevelConfigPath + configName + "_LevelConfig" + ".asset";
+        var existingAsset = AssetDatabase.LoadAssetAtPath<LevelConfig>(assetPath);
+        return existingAsset != null;
+    }
 
     #endregion
 }

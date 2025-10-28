@@ -24,6 +24,15 @@ public class PaintingAdvancedSetupEditor : Editor
         manager.ToolActive = false;
     }
 
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
+        if (GUILayout.Button("ACTIVE TOOL", GUILayout.Height(30)))
+        {
+            manager.SetToolActive();
+        }
+    }
+
     private void OnSceneGUI()
     {
         if (!manager.ToolActive) return;

@@ -7,15 +7,13 @@ public class PaintingConfigSetupEditor : Editor
 {
     public override void OnInspectorGUI()
     {
+        base.OnInspectorGUI();
         serializedObject.Update();
 
         PaintingConfigSetup setup = (PaintingConfigSetup)target;
 
         SerializedProperty targetPaintingProp = serializedObject.FindProperty("TargetPainting");
         EditorGUILayout.PropertyField(targetPaintingProp, new GUIContent("Target Painting", "The original painting sprite to sample colors from"));
-        
-        SerializedProperty targetGridProp = serializedObject.FindProperty("targetGrid");
-        EditorGUILayout.PropertyField(targetGridProp, new GUIContent("Target Grid", "The grid object to match the painting to"));
         
         SerializedProperty colorPaletteProp = serializedObject.FindProperty("colorPalette");
         EditorGUILayout.PropertyField(colorPaletteProp, new GUIContent("Color Palette", "The colors that will be used in the grid"));
@@ -57,9 +55,6 @@ public class PaintingConfigSetupEditor : Editor
         
         // Display the result painting config
         EditorGUILayout.Space();
-        EditorGUILayout.LabelField("Result", EditorStyles.boldLabel);
-        SerializedProperty resultPaintingConfigProp = serializedObject.FindProperty("ResultPaintingConfig");
-        EditorGUILayout.PropertyField(resultPaintingConfigProp, new GUIContent("Result Painting Config", "The generated PaintingConfig asset"));
         
         // Display grid information if available
         if (setup.CurrentGridObject != null)

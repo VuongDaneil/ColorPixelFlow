@@ -139,7 +139,7 @@ public class ColorPixelsCollectorObject : MonoBehaviour
                 MovementHandle.StartMovement();
 
                 // Update movement direction after activation
-                if (MovementHandle.transformPath != null && MovementHandle.transformPath.IsValid())
+                if (MovementHandle.IsPathValid())
                 {
                     Vector3 initialDirection = MovementHandle.GetTangentAtTF(MovementHandle.currentTF);
                     previousMovementDirection = initialDirection;
@@ -173,7 +173,7 @@ public class ColorPixelsCollectorObject : MonoBehaviour
         {
             //MovementHandle.StartMovement();
             // Initialize the previous movement direction
-            if (MovementHandle.transformPath != null && MovementHandle.transformPath.IsValid())
+            if (MovementHandle.IsPathValid())
             {
                 Vector3 initialDirection = MovementHandle.GetTangentAtTF(MovementHandle.currentTF);
                 previousMovementDirection = initialDirection;
@@ -189,7 +189,7 @@ public class ColorPixelsCollectorObject : MonoBehaviour
     // Method to reset processed positions when movement direction changes
     private void CheckMovementDirectionChange()
     {
-        if (MovementHandle.transformPath != null && MovementHandle.transformPath.IsValid())
+        if (MovementHandle.IsPathValid())
         {
             Vector3 rawMovementDirection = MovementHandle.GetTangentAtTF(MovementHandle.currentTF);
 

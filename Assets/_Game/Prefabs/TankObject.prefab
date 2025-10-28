@@ -279,7 +279,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95ef1caec3678e9419000af9f991e468, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  transformPath: {fileID: 11400000, guid: c38d1f5cac67b5e4381d6f160b2b2df9, type: 2}
   speed: 4
   currentTF: 0.35
   endTF: 1
