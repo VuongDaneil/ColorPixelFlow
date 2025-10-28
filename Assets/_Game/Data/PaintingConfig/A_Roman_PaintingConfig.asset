@@ -12516,5 +12516,49 @@ MonoBehaviour:
     colorCode: Green2
     Hidden: 0
   _pipeSetups: []
-  _wallSetups: []
-  _keySetups: []
+  _wallSetups:
+  - Hearts: 0
+    PixelCovered:
+    - column: -6
+      row: -16
+      color: {r: 0.996619, g: 0.84097594, b: 0.6221164, a: 1}
+      colorCode: Green2
+      Hidden: 0
+    - column: -7
+      row: -16
+      color: {r: 0.99824107, g: 0.8262519, b: 0.6086812, a: 1}
+      colorCode: Green2
+      Hidden: 0
+    - column: -8
+      row: -16
+      color: {r: 1, g: 0.8283498, b: 0.60299367, a: 1}
+      colorCode: Green2
+      Hidden: 0
+    - column: -9
+      row: -16
+      color: {r: 1, g: 0.8325859, b: 0.61671674, a: 1}
+      colorCode: Green2
+      Hidden: 0
+    ColorCode: Green2
+  _keySetups:
+  - PixelCovered:
+    - column: 7
+      row: -22
+      color: {r: 0.9994088, g: 0.8283803, b: 0.6370183, a: 1}
+      colorCode: Orange5
+      Hidden: 0
+    - column: 7
+      row: -21
+      color: {r: 1, g: 0.8036291, b: 0.61532736, a: 1}
+      colorCode: Orange5
+      Hidden: 0
+    - column: 6
+      row: -22
+      color: {r: 1, g: 0.8215306, b: 0.6251302, a: 1}
+      colorCode: Orange5
+      Hidden: 0
+    - column: 6
+      row: -21
+      color: {r: 1, g: 0.8204802, b: 0.6197368, a: 1}
+      colorCode: Orange5
+      Hidden: 0

@@ -23,7 +23,7 @@ public class PaintingConfigSetupEditor : Editor
         SerializedProperty useColorFilterProp = serializedObject.FindProperty("useColorFilter");
         EditorGUILayout.PropertyField(useColorFilterProp, new GUIContent("Use Color Filter", "Enable to restrict colors to only those in the Color Codes In Use list"));
         
-        SerializedProperty colorCodeInUseProp = serializedObject.FindProperty("colorCodeInUse");
+        SerializedProperty colorCodeInUseProp = serializedObject.FindProperty("ColorCodeInUse");
         // Only show the color code list if the filter is enabled
         if (setup.useColorFilter)
         {

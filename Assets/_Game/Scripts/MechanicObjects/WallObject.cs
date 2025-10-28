@@ -15,13 +15,9 @@ public class WallObject : MonoBehaviour
 
     [Header("VISUAL")]
     public Renderer WallRenderer;
+    public TMP_Text HeartsText;
 
     public bool Destroyed = false;
-
-    private void Awake()
-    {
-        WallTransform = transform;
-    }
 
     /// <summary>
     /// Initialize the pipe structure with head and body parts
@@ -32,7 +28,6 @@ public class WallObject : MonoBehaviour
     public void Initialize(List<PaintingPixel> pipePixels, int heart, Color color, string colorCode)
     {
         Destroyed = false;
-        WallTransform = transform;
         PaintingPixelsCovered = pipePixels != null ? pipePixels : new List<PaintingPixel>();
         if (heart > 0) CurrentHeart = heart;
         else
@@ -42,6 +37,7 @@ public class WallObject : MonoBehaviour
                 CurrentHeart += pixel.Hearts;
             }
         }
+        HeartsText.text = CurrentHeart.ToString();
         ColorCode = colorCode;
         ChangeColor(color);
     }
@@ -71,8 +67,8 @@ public class WallObject : MonoBehaviour
 
     public void SelfDestroy()
     {
-        if (Application.isPlaying) GameObject.Destroy(WallTransform.gameObject);
-        else GameObject.DestroyImmediate(WallTransform.gameObject);
+        if (Application.isPlaying) GameObject.Destroy(gameObject);
+        else GameObject.DestroyImmediate(gameObject);
     }
 
     public void ChangeColor(Color _color)

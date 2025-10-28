@@ -814,7 +814,7 @@ public class PaintingGridObject : MonoBehaviour
         (int height, int width) = GetShapeSize(wallPixels);
         Vector3 defaultPixelScale = wallPixels[0].pixelObject.transform.localScale;
         Vector3 wallScale = new Vector3(defaultPixelScale.x * width, defaultPixelScale.y, defaultPixelScale.z * height);
-        wallGO.transform.localScale = wallScale;
+        wallObject.WallTransform.localScale = wallScale;
         // Hide all pixel that covered by wall
         for (int i = 0; i < wallPixels.Count; i++)
         {
