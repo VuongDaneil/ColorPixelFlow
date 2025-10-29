@@ -34,14 +34,14 @@ public class MoveCollector : MonoBehaviour
         LevelCollectorsSetup.BakeCollectorsPositionInTool();
     }
 
-    public void Move(ColorPixelsCollectorObject first, ColorPixelsCollectorObject second)
+    public void Move(CollectorMachanicObjectBase first, CollectorMachanicObjectBase second)
     {
         if (first == null || second == null) return;
 
         LevelCollectorsSetup.InsertAmongOtherCollector(first, second, IsInFrontOf(first.transform, second.transform));
 
-        first.VisualHandler.RefreshColor();
-        second.VisualHandler.RefreshColor();
+        //first.VisualHandler.RefreshColor();
+        //second.VisualHandler.RefreshColor();
 
         LevelCollectorsSetup.ImportCollectorsFromScene();
         LevelCollectorsSetup.BakeCollectorsPositionInTool();
@@ -51,6 +51,6 @@ public class MoveCollector : MonoBehaviour
     {
         Vector3 dirToFirst = first.position - second.position;
         float dot = Vector3.Dot(second.forward, dirToFirst);
-        return dot > 0f;
+        return true;
     }
 }

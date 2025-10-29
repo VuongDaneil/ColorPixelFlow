@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NaughtyAttributes;
 using UnityEditor;
 using UnityEngine;
@@ -20,13 +21,16 @@ public class LevelCollectorsSystem : MonoBehaviour
 
     [Header("Runtime Data")]
     public List<ColorPixelsCollectorObject> CurrentCollectors; // Spawned collectors in current config
+    public List<LockObject> CurrentLocks; // Spawned collectors in current config
     public List<CollectorColumn> CollectorColumns; // List of columns created
+    
+    public GameObject LockPrefab; // Collector prefab to spawn
     #endregion
 
     #region UNITY CORE
     private void Start()
     {
-        SetupCollectors();
+        SetupCollectorsAndMechanic();
     }
 
 #if UNITY_EDITOR
@@ -54,9 +58,10 @@ public class LevelCollectorsSystem : MonoBehaviour
     #region MAIN
 
     #region _initialize
-    public void SetupCollectors()
+    public void SetupCollectorsAndMechanic()
     {
         // Clear any existing collectors
+        ClearExistingLocks();
         ClearExistingCollectors();
 
         if (CurrentLevelCollectorsConfig == null)
@@ -78,7 +83,6 @@ public class LevelCollectorsSystem : MonoBehaviour
         }
 
         int numberOfColumns = CurrentLevelCollectorsConfig.NumberOfColumns();
-        int totalCollectors = CurrentLevelCollectorsConfig.NumberOfCollectors();
 
         if (numberOfColumns <= 0)
         {
@@ -87,6 +91,7 @@ public class LevelCollectorsSystem : MonoBehaviour
         }
 
         // Initialize lists
+        CurrentLocks = new List<LockObject>();
         CurrentCollectors = new List<ColorPixelsCollectorObject>();
         CollectorColumns = new List<CollectorColumn>();
 
@@ -96,7 +101,33 @@ public class LevelCollectorsSystem : MonoBehaviour
 
         SetupConnectedCollectors();
     }
+    public void CreateLockObject()
+    {
+        LockObjectConfig config = new LockObjectConfig();
+        // Spawn the collector with specified rotation
 
+        Vector3 spawnPosition = FormationCenter.position;
+
+        // Apply horizontal offset (perpendicular to forward direction) based on column
+        spawnPosition += FormationCenter.right * (0 - (CurrentLevelCollectorsConfig.NumberOfColumns() - 1) / 2.0f) * SpaceBetweenColumns;
+
+        // Apply depth offset (opposite to forward direction) based on row
+        spawnPosition -= FormationCenter.forward * (CollectorColumns[0].CollectorsInColumn.Count) * SpaceBetweenCollectors;
+
+        GameObject lockGO = Instantiate(LockPrefab, spawnPosition, Quaternion.identity, CollectorContainer);
+        lockGO.transform.localEulerAngles = CollectorRotation;
+        LockObject lockObj = lockGO.GetComponent<LockObject>();
+
+        if (lockObj != null)
+        {
+            lockObj.ID = config.ID;
+            lockObj.Row = config.Row;
+
+            // Add to our lists
+            CollectorColumns[0].CollectorsInColumn.Add(lockObj);
+            CurrentLocks.Add(lockObj);
+        }
+    }
     public void ClearExistingCollectors()
     {
         if (CurrentCollectors != null)
@@ -114,6 +145,21 @@ public class LevelCollectorsSystem : MonoBehaviour
         if (CollectorColumns != null)
         {
             CollectorColumns.Clear();
+        }
+    }
+
+    public void ClearExistingLocks()
+    {
+        if (CurrentLocks != null)
+        {
+            foreach (var _lock in CurrentLocks)
+            {
+                if (_lock != null)
+                {
+                    DestroyImmediate(_lock.gameObject);
+                }
+            }
+            CurrentLocks.Clear();
         }
     }
 
@@ -159,11 +205,15 @@ public class LevelCollectorsSystem : MonoBehaviour
         foreach (ColumnOfCollectorConfig colConfig in CurrentLevelCollectorsConfig.CollectorColumns)
         {
             int row = 0;
+            var locks = colConfig.Locks;
             var collectors = colConfig.Collectors;
             CollectorColumn colObjects = new CollectorColumn();
-            for (int i = 0; i < collectors.Count; i++)
+            int totalObjectCount = collectors.Count + locks.Count;
+
+            int lockIndex = 0;
+            int collectorIndex = 0;
+            for (int i = 0; i < totalObjectCount; i++)
             {
-                SingleColorCollectorConfig config = collectors[i];
 
                 // Calculate the position relative to the formation center (which is the highest point)
                 // Use the formation center's transform to properly orient the formation
@@ -175,40 +225,64 @@ public class LevelCollectorsSystem : MonoBehaviour
                 // Apply depth offset (opposite to forward direction) based on row
                 spawnPosition -= FormationCenter.forward * row * SpaceBetweenCollectors;
 
-                // Spawn the collector with specified rotation
-                GameObject collectorObj = Instantiate(CollectorPrefab, spawnPosition, Quaternion.identity, CollectorContainer);
-                collectorObj.transform.localEulerAngles = CollectorRotation;
-                ColorPixelsCollectorObject collector = collectorObj.GetComponent<ColorPixelsCollectorObject>();
-
-                if (collector != null)
+                if (locks.Any(x => x.Row == i))
                 {
-                    collector.ID = config.ID;
+                    LockObjectConfig config = locks[lockIndex];
+                    // Spawn the collector with specified rotation
+                    GameObject lockGO = Instantiate(LockPrefab, spawnPosition, Quaternion.identity, CollectorContainer);
+                    lockGO.transform.localEulerAngles = CollectorRotation;
+                    LockObject lockObj = lockGO.GetComponent<LockObject>();
 
-                    // Find color from palette based on ColorCode
-                    if (ColorPalette != null && ColorPalette.colorPallete.ContainsKey(config.ColorCode))
+                    if (lockObj != null)
                     {
-                        // Set the collector's color and shooting color
-                        collector.CollectorColor = config.ColorCode;
-                        collector.VisualHandler.SetColor(config.ColorCode);
+                        lockObj.ID = config.ID;
+                        lockObj.Row = config.Row;
+
+                        // Add to our lists
+                        colObjects.CollectorsInColumn.Add(lockObj);
+                        CurrentLocks.Add(lockObj);
                     }
+                    lockIndex++;
+                }
+                else
+                {
+                    SingleColorCollectorConfig config = collectors[collectorIndex];
+                    // Spawn the collector with specified rotation
+                    GameObject collectorObj = Instantiate(CollectorPrefab, spawnPosition, Quaternion.identity, CollectorContainer);
+                    collectorObj.transform.localEulerAngles = CollectorRotation;
+                    ColorPixelsCollectorObject collector = collectorObj.GetComponent<ColorPixelsCollectorObject>();
 
-                    // Apply bullet settings
-                    collector.BulletCapacity = config.Bullets;
-                    collector.BulletLeft = config.Bullets;
-                    collector.ConnectedCollectorsIDs = new List<int>(config.ConnectedCollectorsIDs);
-                    collector.IsLocked = config.Locked;
-                    collector.IsHidden = config.Hidden;
+                    if (collector != null)
+                    {
+                        collector.ID = config.ID;
 
-                    // Set locked state (this might be handled by deactivating the collector)
-                    if (false) collector.SetCollectorActive(!config.Locked);
+                        // Find color from palette based on ColorCode
+                        if (ColorPalette != null && ColorPalette.colorPallete.ContainsKey(config.ColorCode))
+                        {
+                            // Set the collector's color and shooting color
+                            collector.CollectorColor = config.ColorCode;
+                            collector.VisualHandler.SetColor(config.ColorCode);
+                        }
 
-                    collector.IsCollectorActive = false;
-                    collector.ApplyHiddenState();
-                    collector.ApplyLockedState();
+                        // Apply bullet settings
+                        collector.BulletCapacity = config.Bullets;
+                        collector.BulletLeft = config.Bullets;
+                        collector.ConnectedCollectorsIDs = new List<int>(config.ConnectedCollectorsIDs);
+                        collector.IsLocked = config.Locked;
+                        collector.IsHidden = config.Hidden;
 
-                    // Add to our lists
-                    colObjects.CollectorsInColumn.Add(collector);
-                    CurrentCollectors.Add(collector);
+                        // Set locked state (this might be handled by deactivating the collector)
+                        if (false) collector.SetCollectorActive(!config.Locked);
+
+                        collector.IsCollectorActive = false;
+                        collector.ApplyHiddenState();
+                        collector.ApplyLockedState();
+
+                        // Add to our lists
+                        colObjects.CollectorsInColumn.Add(collector);
+                        CurrentCollectors.Add(collector);
+                    }
+                    collectorIndex++;
                 }
 
                 row++;
@@ -262,7 +336,7 @@ public class LevelCollectorsSystem : MonoBehaviour
 
     private void OnPlayerCollectAKey()
     {
-        ColorPixelsCollectorObject collectorToUnlock = GetFirstLockedCollectorMet();
+        LockObject collectorToUnlock = GetFirstLockMet();
         if (collectorToUnlock != null)
         {
             collectorToUnlock.Unlock();
@@ -273,15 +347,15 @@ public class LevelCollectorsSystem : MonoBehaviour
     #endregion
 
     #region SUPPORTIVE
-    private ColorPixelsCollectorObject GetFirstLockedCollectorMet()
+    private LockObject GetFirstLockMet()
     {
         foreach (CollectorColumn column in CollectorColumns)
         {
-            foreach (var collector in column.CollectorsInColumn)
+            foreach (var _object in column.CollectorsInColumn)
             {
-                if (collector.IsLocked)
+                if (_object is LockObject)
                 {
-                    return collector;
+                    return _object as LockObject;
                 }
             }
         }

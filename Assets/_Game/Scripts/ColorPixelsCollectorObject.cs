@@ -5,12 +5,10 @@ using NaughtyAttributes;
 using UnityEngine;
 // Custom ReadOnly attribute if not available in the project
 
-public class ColorPixelsCollectorObject : MonoBehaviour
+public class ColorPixelsCollectorObject : CollectorMachanicObjectBase
 {
     #region PROPERTIES
     public CollectorVisualHandler VisualHandler;
-
-    [ReadOnly] public int ID = -1;
 
     [Header("Movement")]
     [Tooltip("Movement handler script for spline movement")]

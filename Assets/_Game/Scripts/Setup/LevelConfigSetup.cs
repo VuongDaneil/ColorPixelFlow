@@ -61,13 +61,14 @@ public class LevelConfigSetup : MonoBehaviour
     public void LoadLevel()
     {
         ClearLevel();
-        LevelCollectorsManager.SetupCollectors();
+        LevelCollectorsManager.SetupCollectorsAndMechanic();
         CurrentGridObject.InitializeLevel();
     }
 
     [Button("CLEAR LEVEL")]
     public void ClearLevel()
     {
+        LevelCollectorsManager.ClearExistingLocks();
         LevelCollectorsManager.ClearExistingCollectors();
         CurrentGridObject.ClearAllKeys();
         CurrentGridObject.ClearAllPipes();

@@ -33,3 +33,16 @@ public class SingleColorCollectorConfig
         ConnectedCollectorsIDs = new List<int>();
     }
 }
+
+[Serializable]
+public class LockObjectConfig
+{
+    public int ID = -1;
+    public int Row = -1;
+
+    public LockObjectConfig()
+    {
+        ID = -1;
+        Row = -1;
+    }
+}

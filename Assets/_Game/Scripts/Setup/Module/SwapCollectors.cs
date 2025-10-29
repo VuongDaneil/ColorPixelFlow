@@ -56,36 +56,36 @@ public class SwapCollectors : MonoBehaviour
         LevelCollectorsSetup.ImportCollectorsFromScene();
     }
 
-    public void Swap(ColorPixelsCollectorObject first, ColorPixelsCollectorObject second)
+    public void Swap(CollectorMachanicObjectBase first, CollectorMachanicObjectBase second)
     {
-        if (first == null || second == null) return;
+        //if (first == null || second == null) return;
 
-        bool gunnerOneLocked = first.IsLocked;
-        bool gunnerOneHidden = first.IsHidden;
-        int gunnerOneIndex = first.BulletCapacity;
-        string gunnerOneColor = first.CollectorColor;
-        Color gunnerOnecCurrentColor = first.VisualHandler.CurrentColor;
+        //bool gunnerOneLocked = first.IsLocked;
+        //bool gunnerOneHidden = first.IsHidden;
+        //int gunnerOneIndex = first.BulletCapacity;
+        //string gunnerOneColor = first.CollectorColor;
+        //Color gunnerOnecCurrentColor = first.VisualHandler.CurrentColor;
 
-        bool gunnerTwoLocked = second.IsLocked;
-        bool gunnerTwoHidden = second.IsHidden;
-        int gunnerTwoIndex = second.BulletCapacity;
-        string gunnerTwoColor = second.CollectorColor;
-        Color gunnerTwocCurrentColor = second.VisualHandler.CurrentColor;
+        //bool gunnerTwoLocked = second.IsLocked;
+        //bool gunnerTwoHidden = second.IsHidden;
+        //int gunnerTwoIndex = second.BulletCapacity;
+        //string gunnerTwoColor = second.CollectorColor;
+        //Color gunnerTwocCurrentColor = second.VisualHandler.CurrentColor;
 
-        first.BulletCapacity = gunnerTwoIndex;
-        first.CollectorColor = gunnerTwoColor;
-        first.IsLocked = gunnerTwoLocked;
-        first.IsHidden = gunnerTwoHidden;
-        first.VisualHandler.CurrentColor = gunnerTwocCurrentColor;
+        //first.BulletCapacity = gunnerTwoIndex;
+        //first.CollectorColor = gunnerTwoColor;
+        //first.IsLocked = gunnerTwoLocked;
+        //first.IsHidden = gunnerTwoHidden;
+        //first.VisualHandler.CurrentColor = gunnerTwocCurrentColor;
 
-        second.BulletCapacity = gunnerOneIndex;
-        second.CollectorColor = gunnerOneColor;
-        second.IsLocked = gunnerOneLocked;
-        second.IsHidden = gunnerOneHidden;
-        second.VisualHandler.CurrentColor = gunnerOnecCurrentColor;
+        //second.BulletCapacity = gunnerOneIndex;
+        //second.CollectorColor = gunnerOneColor;
+        //second.IsLocked = gunnerOneLocked;
+        //second.IsHidden = gunnerOneHidden;
+        //second.VisualHandler.CurrentColor = gunnerOnecCurrentColor;
 
-        first.VisualHandler.RefreshColor();
-        second.VisualHandler.RefreshColor();
+        //first.VisualHandler.RefreshColor();
+        //second.VisualHandler.RefreshColor();
 
         LevelCollectorsSetup.ImportCollectorsFromScene();
     }

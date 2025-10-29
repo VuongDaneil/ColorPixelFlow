@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using NaughtyAttributes;
 using UnityEngine;
 using System.Linq;
+using System.Collections.ObjectModel;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -32,6 +34,7 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
     public LayerMask CollectorObjectLayerMask;
     public float CollisionRadius;
     [ShowIf("ToolActive")] public List<Vector3> OriginalCollectorPosition = new List<Vector3>();
+    [ShowIf("ToolActive")] public List<Vector3> OriginalLocksPosition = new List<Vector3>();
     public int NumberOfWorkingPixels = 0;
     public int TotalBulletsCount = 0;
     public int NumberOfLockedCollector = 0;
@@ -63,7 +66,7 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         if (previewSystem != null)
         {
             previewSystem.CurrentLevelCollectorsConfig = configAsset;
-            previewSystem.SetupCollectors();
+            previewSystem.SetupCollectorsAndMechanic();
         }
 
 #if UNITY_EDITOR
@@ -93,18 +96,34 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         foreach (CollectorColumn col in previewSystem.CollectorColumns)
         {
             ColumnOfCollectorConfig newColumn = new ColumnOfCollectorConfig();
-            foreach (ColorPixelsCollectorObject collector in col.CollectorsInColumn)
+            int locksRow = 0;
+            foreach (CollectorMachanicObjectBase _object in col.CollectorsInColumn)
             {
-                SingleColorCollectorConfig newCollector = new SingleColorCollectorConfig
+                if (_object is ColorPixelsCollectorObject)
                 {
-                    ID = collector.ID,
-                    ColorCode = collector.CollectorColor, // Use the color code the collector can destroy
-                    Bullets = collector.BulletCapacity, // Use remaining bullets
-                    Locked = collector.IsLocked,
-                    Hidden = collector.IsHidden,
-                    ConnectedCollectorsIDs = new List<int>(collector.ConnectedCollectorsIDs) // Default to no connections
-                };
-                newColumn.Collectors.Add(newCollector);
+                    ColorPixelsCollectorObject _collector = _object as ColorPixelsCollectorObject;
+                    SingleColorCollectorConfig newCollector = new SingleColorCollectorConfig
+                    {
+                        ID = _collector.ID,
+                        ColorCode = _collector.CollectorColor, // Use the color code the collector can destroy
+                        Bullets = _collector.BulletCapacity, // Use remaining bullets
+                        Locked = _collector.IsLocked,
+                        Hidden = _collector.IsHidden,
+                        ConnectedCollectorsIDs = new List<int>(_collector.ConnectedCollectorsIDs) // Default to no connections
+                    };
+                    newColumn.Collectors.Add(newCollector);
+                }
+                else if (_object is LockObject)
+                {
+                    LockObject _lock = _object as LockObject;
+                    LockObjectConfig newLock = new LockObjectConfig()
+                    {
+                        ID = _lock.ID,
+                        Row = locksRow
+                    };
+                    newColumn.Locks.Add(newLock);
+                }
+                locksRow++;
             }
             if (newColumn.Collectors.Count > 0) configAsset.CollectorColumns.Add(newColumn);
         }
@@ -495,12 +514,23 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
         {
             OriginalCollectorPosition.Add(previewSystem.CurrentCollectors[i].transform.position);
         }
+
+        OriginalLocksPosition.Clear();
+        for (int i = 0; i < previewSystem.CurrentLocks.Count; i++)
+        {
+            OriginalLocksPosition.Add(previewSystem.CurrentLocks[i].transform.position);
+        }
     }
     public void ReApplyCollectorsPosition()
     {
         for (int i = 0; i < previewSystem.CurrentCollectors.Count; i++)
         {
             previewSystem.CurrentCollectors[i].transform.position = OriginalCollectorPosition[i];
+        }
+
+        for (int i = 0; i < previewSystem.CurrentLocks.Count; i++)
+        {
+            previewSystem.CurrentLocks[i].transform.position = OriginalLocksPosition[i];
         }
     }
     public void ReCountCollectors()
@@ -567,7 +597,7 @@ public class LevelCollectorsConfigSetup : MonoBehaviour
     #region TOOL MODULES
 
     #region _move
-    public void InsertAmongOtherCollector(ColorPixelsCollectorObject itemToInsert, ColorPixelsCollectorObject originItem, bool higher)
+    public void InsertAmongOtherCollector(CollectorMachanicObjectBase itemToInsert, CollectorMachanicObjectBase originItem, bool higher)
     {
         bool sameColumn = false;
         CollectorColumn targetColumnToMoveTo = null;

@@ -8,14 +8,14 @@ public class LevelCollectorsConfigSetupEditor : Editor
     private string newConfigName = "CollectorsConfig";
 
     LevelCollectorsConfigSetup manager;
-    public ColorPixelsCollectorObject SelectedItem;
-    public ColorPixelsCollectorObject CollidedItem;
+    public CollectorMachanicObjectBase SelectedItem;
+    public CollectorMachanicObjectBase CollidedItem;
 
     private static int selectedMode = 0;
     private static readonly string[] labels = { "Move", "Swap", "Combine", "Split", "Connect" };
 
     private static bool[] checkboxes = new bool[2];
-    private static readonly string[] checkBoxlabels = { "Lock", "Hide"};
+    private static readonly string[] checkBoxlabels = { "Lock", "Hide" };
 
     private bool debug = false;
 
@@ -111,7 +111,16 @@ public class LevelCollectorsConfigSetupEditor : Editor
         EditorGUILayout.LabelField("Clear Setup:", EditorStyles.boldLabel);
         if (GUILayout.Button("Clear Setup in Scene"))
         {
+            manager.previewSystem.ClearExistingLocks();
             manager.previewSystem.ClearExistingCollectors();
+        }
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField("Lock setup:", EditorStyles.boldLabel);
+        if (GUILayout.Button("Create new Lock"))
+        {
+            manager.previewSystem.CreateLockObject();
+            manager.ImportCollectorsFromScene();
         }
         #endregion
 
@@ -146,15 +155,15 @@ public class LevelCollectorsConfigSetupEditor : Editor
 
             if (Physics.Raycast(worldRay, out RaycastHit hit, 1000f, manager.CollectorObjectLayerMask))
             {
-                var item = hit.collider.GetComponent<ColorPixelsCollectorObject>();
-                if (item != null && item != SelectedItem)
+                var item = hit.collider.GetComponent<CollectorMachanicObjectBase>();
+                if (item != null || item != SelectedItem)
                 {
                     firstClicked = true;
                     CollidedItem = null;
                     SelectedItem = item;
                     Selection.activeGameObject = item.gameObject;
                     SceneView.RepaintAll();
-                    e.Use(); // chặn click này không bị SceneView dùng
+                    //e.Use(); // chặn click này không bị SceneView dùng
                 }
             }
         }
@@ -184,14 +193,14 @@ public class LevelCollectorsConfigSetupEditor : Editor
             {
                 switch (selectedMode)
                 {
-                    case 0: if(hasSelectedItem && hasCollidedItem) manager.MoveModule.Move(SelectedItem, CollidedItem); break;
-                    case 1: if (hasSelectedItem && hasCollidedItem)
-                        {
-                            manager.SwapModule.Swap(SelectedItem, CollidedItem);
-                        } break;
-                    case 2: if (hasSelectedItem && hasCollidedItem) manager.CombineModule.Combine(SelectedItem, CollidedItem); break;
-                    case 3: if (hasSelectedItem) manager.SplitModule.Split(SelectedItem); break;
-                    case 4: if (hasSelectedItem && hasCollidedItem) manager.ConnectModule.Connect(SelectedItem, CollidedItem); break;
+                    case 0: if (hasSelectedItem && hasCollidedItem) manager.MoveModule.Move(SelectedItem, CollidedItem); break;
+                        //case 1: if (hasSelectedItem && hasCollidedItem)
+                        //    {
+                        //        manager.SwapModule.Swap(SelectedItem, CollidedItem);
+                        //    } break;
+                        //case 2: if (hasSelectedItem && hasCollidedItem) manager.CombineModule.Combine(SelectedItem, CollidedItem); break;
+                        //case 3: if (hasSelectedItem) manager.SplitModule.Split(SelectedItem); break;
+                        //case 4: if (hasSelectedItem && hasCollidedItem) manager.ConnectModule.Connect(SelectedItem, CollidedItem); break;
                 }
                 SelectedItem = null;
                 CollidedItem = null;
@@ -202,7 +211,7 @@ public class LevelCollectorsConfigSetupEditor : Editor
         }
     }
 
-    private void CheckCollisions(ColorPixelsCollectorObject current)
+    private void CheckCollisions(CollectorMachanicObjectBase current)
     {
         foreach (var other in manager.previewSystem.CurrentCollectors)
         {
@@ -259,44 +268,45 @@ public class LevelCollectorsConfigSetupEditor : Editor
 
     private void ShowCollectorOptionsCheckBox()
     {
-        if (SelectedItem == null) return;
+        if (SelectedItem == null || SelectedItem is not ColorPixelsCollectorObject) return;
+
+        ColorPixelsCollectorObject selectedCollector = SelectedItem as ColorPixelsCollectorObject;
 
         float width = 300f;
         float height = 50f;
         float x = (SceneView.currentDrawingSceneView.position.width - width);  // right align
         float y = SceneView.currentDrawingSceneView.position.height - height - 90f;
-
         Handles.BeginGUI();
 
         Color oldColor = GUI.backgroundColor;
         //GUI.backgroundColor = new Color(0.3f, 0.7f, 1f, 1f);
-        GUI.backgroundColor = manager.previewSystem.ColorPalette.GetColorByCode(SelectedItem.CollectorColor);
+        GUI.backgroundColor = manager.previewSystem.ColorPalette.GetColorByCode(selectedCollector.CollectorColor);
         GUILayout.BeginArea(new Rect(x, y, width, height), GUI.skin.box);
-        GUILayout.Label($"{SelectedItem.name} - {SelectedItem.CollectorColor} - {SelectedItem.BulletCapacity} Bullets", EditorStyles.boldLabel);
+        GUILayout.Label($"{SelectedItem.name} - {selectedCollector.CollectorColor} - {selectedCollector.BulletCapacity} Bullets", EditorStyles.boldLabel);
 
         GUILayout.BeginHorizontal(GUI.skin.box);
         GUILayout.Label("Options", EditorStyles.boldLabel);
 
         // --- LOCK TOGGLE ---
-        bool newLockState = GUILayout.Toggle(SelectedItem.IsLocked, checkBoxlabels[0]);
-        if (newLockState != SelectedItem.IsLocked)
+        bool newLockState = GUILayout.Toggle(selectedCollector.IsLocked, checkBoxlabels[0]);
+        if (newLockState != selectedCollector.IsLocked)
         {
             Undo.RecordObject(SelectedItem, "Toggle Lock");
-            SelectedItem.IsLocked = newLockState;
+            selectedCollector.IsLocked = newLockState;
             checkboxes[0] = newLockState;
-            SelectedItem.ApplyLockedState();
+            selectedCollector.ApplyLockedState();
             manager.ImportCollectorsFromScene();
             EditorUtility.SetDirty(SelectedItem);
         }
 
         // --- HIDE TOGGLE ---
-        bool newHideState = GUILayout.Toggle(SelectedItem.IsHidden, checkBoxlabels[1]);
-        if (newHideState != SelectedItem.IsHidden)
+        bool newHideState = GUILayout.Toggle(selectedCollector.IsHidden, checkBoxlabels[1]);
+        if (newHideState != selectedCollector.IsHidden)
         {
             Undo.RecordObject(SelectedItem, "Toggle Hide");
-            SelectedItem.IsHidden = newHideState;
+            selectedCollector.IsHidden = newHideState;
             checkboxes[1] = newHideState;
-            SelectedItem.ApplyHiddenState();
+            selectedCollector.ApplyHiddenState();
             manager.ImportCollectorsFromScene();
             EditorUtility.SetDirty(SelectedItem);
         }
@@ -308,7 +318,7 @@ public class LevelCollectorsConfigSetupEditor : Editor
         GUILayout.Label("Options", EditorStyles.boldLabel);
 
         bool newState = GUILayout.Toggle(checkboxes[0], checkBoxlabels[0], "Button", GUILayout.Width(80));
-        checkboxes[0] = SelectedItem.IsLocked;
+        checkboxes[0] = selectedCollector.IsLocked;
 
         GUILayout.EndHorizontal();
 

@@ -23,6 +23,16 @@ public class LevelColorCollectorsConfig : ScriptableObject
         return num;
     }
 
+    public int NumberOfLocks()
+    {
+        int num = 0;
+        foreach (var col in CollectorColumns)
+        {
+            num += col.Locks.Count;
+        }
+        return num;
+    }
+
     public List<SingleColorCollectorConfig> GetAllCollectorConfigs()
     {
         List<SingleColorCollectorConfig> rs = new List<SingleColorCollectorConfig>();
@@ -39,9 +49,11 @@ public class LevelColorCollectorsConfig : ScriptableObject
 public class ColumnOfCollectorConfig
 {
     public List<SingleColorCollectorConfig> Collectors;
+    public List<LockObjectConfig> Locks;
 
     public ColumnOfCollectorConfig()
     {
         Collectors = new List<SingleColorCollectorConfig>();
+        Locks = new List<LockObjectConfig>();
     }
 }
